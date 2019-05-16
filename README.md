@@ -20,3 +20,11 @@ __e-typing Shortcuts__
 
 - `Ctrl + Enter` : 「スタート」ボタンと「もう一回」ボタンのクリック
 - `Alt + Enter` : 「ミスだけ」ボタンのクリック
+
+---
+
+__add textarea__
+
+<a href="add-textarea.user.js?raw=true">Install Link</a>
+
+様々な条件による文字数カウントをリアルタイムで表示してくれる愛用サイト [文字数カウント - Sundry Street](https://phonypianist.sakura.ne.jp/convenienttool/strcount.html) に、メモを書き込むためのテキストエリアを追加します。
