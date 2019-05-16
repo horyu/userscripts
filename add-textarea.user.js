@@ -9,9 +9,9 @@
 // ==/UserScript==
 
 (() => {
-  'use strict';
-  const p = document.querySelector('.container > p');
-  const ta = document.createElement('textarea');
-  ta.style = 'width: 100%';
-  p.insertAdjacentElement('afterend', ta);
+    'use strict';
+    const p = document.querySelector('.container > p');
+    const ta = document.createElement('textarea');
+    ta.style = 'width: 100%';
+    p.insertAdjacentElement('afterend', ta);
 })();

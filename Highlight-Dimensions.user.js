@@ -10,7 +10,7 @@
 
 (() => {
     'use strict';
-	const observer = new MutationObserver(mutationObserverCallback);
+    const observer = new MutationObserver(mutationObserverCallback);
     const divHasArticles = document.getElementsByClassName('resultList__item')[0].parentNode;
     const config = { childList: true, subtree: true };
     observer.observe(divHasArticles, config);
