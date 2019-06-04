@@ -28,3 +28,13 @@ __add textarea__
 <a href="add-textarea.user.js?raw=true">Install Link</a>
 
 様々な条件による文字数カウントをリアルタイムで表示してくれる愛用サイト [文字数カウント - Sundry Street](https://phonypianist.sakura.ne.jp/convenienttool/strcount.html) に、メモを書き込むためのテキストエリアを追加します。
+
+---
+
+__NicoManga ScrollButton__
+
+<a href="NicoManga-ScrollButton.user.js?raw=true">Install Link</a>
+
+ニコニコ漫画（ニコニコ静画）のヘッダーに、左右クリックでページスクロールするボタンと次エピソードへの移動ボタンを追加します。左右キーの入力でページスクロールする機能も入ってます。
+
+![ScreenShot](https://raw.githubusercontent.com/horyu/userscripts/master/imgs/NicoManga-ScrollButton.png)
