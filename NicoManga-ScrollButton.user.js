@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name         NicoManga ScrollButton
 // @namespace    https://github.com/horyu/
-// @version      0.0.2
+// @version      0.0.3
 // @description  ニコニコ漫画のヘッダーに、左右クリックでページスクロールするボタンと次エピソードへの移動ボタンを追加します。左右キーの入力でページスクロールする機能も入ってます。
 // @run-at       document-end
-// @match        http://seiga.nicovideo.jp/watch/mg*
+// @match        *://seiga.nicovideo.jp/watch/mg*
 // @grant        none
 // ==/UserScript==
 
