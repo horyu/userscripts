@@ -38,3 +38,11 @@ __NicoManga ScrollButton__
 ニコニコ漫画（ニコニコ静画）のヘッダーに、左右クリックでページスクロールするボタンと次エピソードへの移動ボタンを追加します。左右キーの入力でページスクロールする機能も入ってます。
 
 ![ScreenShot](https://raw.githubusercontent.com/horyu/userscripts/master/imgs/NicoManga-ScrollButton.png)
+
+---
+
+__Twitter Image Asist for React version__
+
+<a href="TwitterImageAssist.user.js?raw=true">Install Link</a>
+
+React版のTwitterで画像ツイートにopenボタン（Ctrlキー・\[左右中\]クリックの組み合わせあり）とかを追加します。基本は左クリックor中クリック。
