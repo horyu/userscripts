@@ -3,7 +3,7 @@
 // @namespace   https://github.com/horyu
 // @description 画像ツイートにopenボタン（Ctrlキー・[左右中]クリックの組み合わせあり）とか追加します。基本は左クリックor中クリック。
 // @include     https://twitter.com/*
-// @version     0.1.5
+// @version     0.1.6
 // @run-at      document-start
 // @noframes
 // @grant       GM.openInTab
@@ -12,7 +12,7 @@
 'use strict';
 
 function init() {
-    document.addEventListener('DOMNodeInserted', process);
+    document.body.addEventListener('DOMNodeInserted', process);
     document.addEventListener('DOMContentLoaded', setStyle);
 }
 
@@ -37,8 +37,8 @@ function makeContainer(art) {
     const container = document.createElement('div');
     container.className = prefixed('-container');
     // 個別ツイート画面のトップツイート用
-    if (art.dataset.testid == 'tweetDetail') {
-        const divHasIconRow = art.querySelector('img[alt=""]').closest('article > div');
+    if (art.querySelector('a[href="https://help.twitter.com/using-twitter/how-to-tweet#source-labels"]')) {
+        const divHasIconRow = art.querySelector('div[data-testid="tweet"]');
         divHasIconRow.after(container);
         container.classList.add(prefixed('-row-container'));
     } else { // 通常のツイート用
@@ -52,8 +52,9 @@ function addOpenButton(container) {
     const btn = document.createElement('button');
     btn.innerText = 'open';
     btn.oncontextmenu = () => false;
-    btn.onmousedown = (e) => {
+    btn.onmousup = (e) => {
         e.preventDefault();
+        e.stopPropagation();
     };
     btn.addEventListener('mousedown', (e) => {
         e.preventDefault();
