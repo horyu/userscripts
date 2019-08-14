@@ -3,7 +3,7 @@
 // @namespace   https://github.com/horyu
 // @description 画像ツイートにopenボタン（Ctrlキー・[左右中]クリックの組み合わせあり）とか追加します。基本は左クリックor中クリック。
 // @include     https://twitter.com/*
-// @version     0.1.7
+// @version     0.2.0
 // @run-at      document-start
 // @noframes
 // @grant       GM.openInTab
@@ -12,35 +12,64 @@
 'use strict';
 
 function init() {
-    document.body.addEventListener('DOMNodeInserted', process);
+    document.addEventListener('DOMContentLoaded', observer.connect);
     document.addEventListener('DOMContentLoaded', setStyle);
 }
 
-function process() {
-    const parent = document.querySelector('div[data-testid="primaryColumn"]');
-    if (parent !== null) {
-        const arts = Array.from(parent.getElementsByTagName('article'));
-        // ユーザーアイコンimgと画像ツイートimgの違いがパット見 [alt="画像"]
-        const artsHasImg = arts.filter(art => art.querySelector('img[alt="画像"]'));
-        artsHasImg.forEach((art) => {
-            if (!alreadyVisitedArts.has(art)) {
-                alreadyVisitedArts.add(art);
-                const container = makeContainer(art);
-                addOpenButton(container);
-                observeImgs(art, container);
-            }
-        });
+//
+// observer
+//
+
+let divHasdivs = null;
+const observer = new MutationObserver((mutations) => {
+    //console.log(mutations.reduce((acc, mutation) => acc.concat(...mutation.addedNodes), []));
+    if (document.body.contains(divHasdivs)) {
+        // 追加要素が divHasdivs 内ならば
+        if (mutations.some((mutation) => Array.from(mutation.addedNodes).some((ele) => divHasdivs.contains(ele)))) {
+            observer.disconnect();
+            scanDivHasDivs();
+            observer.connect();
+        }
+    } else {
+        const child = document.body.querySelector('div[data-testid="primaryColumn"] section div:not([class]):not([style])');
+        if (child) {
+            divHasdivs = child.parentElement;
+            console.log('divHasdivs:', divHasdivs);
+        }
+    }
+});
+observer.connect = () => {
+    observer.observe(document.body, {subtree: true, childList: true});
+};
+
+const alreadyVisitedDivs = new WeakSet();
+function scanDivHasDivs() {
+    for (const div of divHasdivs.children) {
+        if (alreadyVisitedDivs.has(div)) continue;
+        const art = div.querySelector(':scope > div > article');
+        if (!art) {
+            alreadyVisitedDivs.add(div);
+            continue;
+        }
+        // ユーザーアイコンimgと画像ツイートimgの違いが [alt="画像"]
+        if (art.querySelector('img[alt="画像"]')) {
+            //console.log('img[alt="画像"]: ', art);
+            alreadyVisitedDivs.add(div);
+            const container = makeContainer(art);
+            addOpenButton(container);
+            observeImgs(art, container);
+        }
     }
 }
 
 function makeContainer(art) {
     const container = document.createElement('div');
-    container.className = prefixed('-container');
+    container.className = `${cssPrefix}-container`;
     // 個別ツイート用
     if (art.querySelector('a[href="https://help.twitter.com/using-twitter/how-to-tweet#source-labels"]')) {
         const divHasIconRow = art.querySelector('div[data-testid="tweet"]');
         divHasIconRow.after(container);
-        container.classList.add(prefixed('-row-container'));
+        container.classList.add(`${cssPrefix}-row-container`);
     } else { // 通常のツイート用
         const divHasIcon = art.querySelector('div[data-testid="tweet"] > div');
         divHasIcon.append(container);
@@ -74,6 +103,7 @@ function addOpenButton(container) {
 }
 
 // 2枚目以降の画像読み込みが遅延で行われるので短時間監視する
+const alreadyVisitedImgs = new WeakSet();
 function observeImgs(art, container) {
     const func = (e) => {
         e.stopPropagation();
@@ -81,7 +111,9 @@ function observeImgs(art, container) {
         imgs.forEach((img) => {
             if (!alreadyVisitedImgs.has(img)) {
                 alreadyVisitedImgs.add(img);
+                observer.disconnect();
                 addImageCopy(container, img);
+                observer.connect();
             }
         });
     };
@@ -105,21 +137,10 @@ function addImageCopy(container, img) {
 }
 
 //
-// Util
-//
-
-const alreadyVisitedArts = new WeakSet();
-const alreadyVisitedImgs = new WeakSet();
-
-const cssPrefix = 'horyususerscript';
-
-function prefixed(str) {
-    return cssPrefix + str;
-}
-
-//
 // setStyle
 //
+
+const cssPrefix = 'horyususerscript';
 
 const style = `
 .${cssPrefix}-container {
@@ -156,9 +177,9 @@ const style = `
 `;
 
 function setStyle() {
-    const styleEl = document.createElement('style');
-    styleEl.textContent = style;
-    document.head.append(styleEl);
+    const styleEle = document.createElement('style');
+    styleEle.textContent = style;
+    document.head.append(styleEle);
 }
 
 //
