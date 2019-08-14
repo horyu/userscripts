@@ -3,7 +3,7 @@
 // @namespace   https://github.com/horyu
 // @description 画像ツイートにopenボタン（Ctrlキー・[左右中]クリックの組み合わせあり）とか追加します。基本は左クリックor中クリック。
 // @include     https://twitter.com/*
-// @version     0.1.6
+// @version     0.1.7
 // @run-at      document-start
 // @noframes
 // @grant       GM.openInTab
@@ -22,7 +22,7 @@ function process() {
         const arts = Array.from(parent.getElementsByTagName('article'));
         // ユーザーアイコンimgと画像ツイートimgの違いがパット見 [alt="画像"]
         const artsHasImg = arts.filter(art => art.querySelector('img[alt="画像"]'));
-        artsHasImg.forEach(art => {
+        artsHasImg.forEach((art) => {
             if (!alreadyVisitedArts.has(art)) {
                 alreadyVisitedArts.add(art);
                 const container = makeContainer(art);
@@ -36,7 +36,7 @@ function process() {
 function makeContainer(art) {
     const container = document.createElement('div');
     container.className = prefixed('-container');
-    // 個別ツイート画面のトップツイート用
+    // 個別ツイート用
     if (art.querySelector('a[href="https://help.twitter.com/using-twitter/how-to-tweet#source-labels"]')) {
         const divHasIconRow = art.querySelector('div[data-testid="tweet"]');
         divHasIconRow.after(container);
@@ -73,34 +73,31 @@ function addOpenButton(container) {
     container.prepend(btn);
 }
 
-// （2枚目以降の）画像読み込みが遅延で行われるので監視する
+// 2枚目以降の画像読み込みが遅延で行われるので短時間監視する
 function observeImgs(art, container) {
     const func = (e) => {
         e.stopPropagation();
-        if (art.dataset.hasFourImg) return;
         const imgs = art.querySelectorAll('img[alt="画像"]');
-        imgs.forEach((img, index) => {
+        imgs.forEach((img) => {
             if (!alreadyVisitedImgs.has(img)) {
                 alreadyVisitedImgs.add(img);
-                addImageCopy(container, img, index);
+                addImageCopy(container, img);
             }
         });
-        if (imgs.length === 4) {
-            art.dataset.hasFourImg = true;
-            // 4枚画像の表示は [[0 1] [2 3]] だが、構造は [[0 2] [1 3]] なので1と2のorderを交換
-            const as = art.getElementsByClassName(prefixed('-orig-link'));
-            [as[1].style.order, as[2].style.order] = ['2', '1'];
-        }
     };
     func(new Event('initialize'));
     art.addEventListener('DOMNodeInserted', func);
+    setTimeout(() => {
+        art.removeEventListener('DOMNodeInserted', func);
+    }, 3000);
 }
 
-function addImageCopy(container, img, order) {
+function addImageCopy(container, img) {
     const src = img.src;
     const url = new URL(src);
     url.searchParams.delete('name');
     const origSrc = url.toString();
+    const order = img.closest('a').href.slice(-1);
     container.insertAdjacentHTML(
         'beforeend',
         `<a class="${cssPrefix}-orig-link" href="${origSrc}" target="_blank" style="order: ${order}"><img src="${src}"></a>`
