@@ -3,8 +3,8 @@
 // @namespace   https://github.com/horyu
 // @description 画像ツイートにopenボタン（Ctrlキー・[左右中]クリックの組み合わせあり）とか追加します。基本は左クリックor中クリック。
 // @include     https://twitter.com/*
-// @version     0.2.0
-// @run-at      document-start
+// @version     0.2.2
+// @run-at      document-end
 // @noframes
 // @grant       GM.openInTab
 // ==/UserScript==
@@ -39,7 +39,7 @@ const observer = new MutationObserver((mutations) => {
     }
 });
 observer.connect = () => {
-    observer.observe(document.body, {subtree: true, childList: true});
+    observer.observe(document, {subtree: true, childList: true});
 };
 
 const alreadyVisitedDivs = new WeakSet();
@@ -129,7 +129,9 @@ function addImageCopy(container, img) {
     const url = new URL(src);
     url.searchParams.delete('name');
     const origSrc = url.toString();
-    const order = img.closest('a').href.slice(-1);
+    let order = 1; // モバイルアプリで左にスワイプしてやる画像ツイート用
+    const a = img.closest('a');
+    if (a) order = a.href.slice(-1); // 通常の画像ツイート用
     container.insertAdjacentHTML(
         'beforeend',
         `<a class="${cssPrefix}-orig-link" href="${origSrc}" target="_blank" style="order: ${order}"><img src="${src}"></a>`
