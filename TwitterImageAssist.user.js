@@ -3,7 +3,7 @@
 // @namespace   https://github.com/horyu
 // @description 画像ツイートにopenボタン（Ctrlキー・[左右中]クリックの組み合わせあり）とか追加します。基本は左クリックor中クリック。
 // @include     https://twitter.com/*
-// @version     0.2.2
+// @version     0.2.3
 // @run-at      document-end
 // @noframes
 // @grant       GM.openInTab
@@ -12,8 +12,10 @@
 'use strict';
 
 function init() {
-    document.addEventListener('DOMContentLoaded', observer.connect);
-    document.addEventListener('DOMContentLoaded', setStyle);
+    document.addEventListener('DOMContentLoaded', () => {
+        observer.connect();
+        setStyle();
+    });
 }
 
 //
@@ -26,6 +28,7 @@ const observer = new MutationObserver((mutations) => {
     if (document.body.contains(divHasdivs)) {
         // 追加要素が divHasdivs 内ならば
         if (mutations.some((mutation) => Array.from(mutation.addedNodes).some((ele) => divHasdivs.contains(ele)))) {
+            // 要素の追加を行うから observer を一時的に切る
             observer.disconnect();
             scanDivHasDivs();
             observer.connect();
@@ -112,7 +115,7 @@ function observeImgs(art, container) {
             if (!alreadyVisitedImgs.has(img)) {
                 alreadyVisitedImgs.add(img);
                 observer.disconnect();
-                addImageCopy(container, img);
+                addImageCopy(container, img); // 要素の追加を行うから observer を一時的に切る
                 observer.connect();
             }
         });
@@ -130,8 +133,8 @@ function addImageCopy(container, img) {
     url.searchParams.delete('name');
     const origSrc = url.toString();
     let order = 1; // モバイルアプリで左にスワイプしてやる画像ツイート用
-    const a = img.closest('a');
-    if (a) order = a.href.slice(-1); // 通常の画像ツイート用
+    const a = img.closest('a'); // 通常の画像ツイート用
+    if (a) order = a.href.slice(-1);
     container.insertAdjacentHTML(
         'beforeend',
         `<a class="${cssPrefix}-orig-link" href="${origSrc}" target="_blank" style="order: ${order}"><img src="${src}"></a>`
