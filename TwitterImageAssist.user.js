@@ -3,7 +3,7 @@
 // @namespace   https://github.com/horyu
 // @description 画像ツイートにopenボタン（Ctrlキー・[左右中]クリックの組み合わせあり）とか追加します。基本は左クリックor中クリック。
 // @include     https://twitter.com/*
-// @version     0.3.0
+// @version     0.3.1
 // @run-at      document-end
 // @noframes
 // @grant       GM.openInTab
@@ -36,7 +36,7 @@ const observer = new MutationObserver((mutations) => {
     } else {
         const parent = document.body.querySelector('[data-testid="primaryColumn"] [aria-label^="タイムライン:"]');
         if (parent) {
-            divHasdivs = parent.childNodes[0];
+            divHasdivs = parent.firstChild.firstChild;
             console.log('divHasdivs:', divHasdivs);
         }
     }
