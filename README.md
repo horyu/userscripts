@@ -46,3 +46,13 @@ __Twitter Image Asist for React version__
 <a href="TwitterImageAssist.user.js?raw=true">Install Link</a>
 
 React版のTwitterで画像ツイートにopenボタン（Ctrlキー・\[左右中\]クリックの組み合わせあり）とかを追加します。基本は左クリックor中クリック。
+
+---
+
+__Twitter Image Viewer__
+
+<a href="TwitterImageViewer.user.js?raw=true">Install Link</a>
+
+[fengyuanchen](https://github.com/fengyuanchen)/[viewerjs](https://github.com/fengyuanchen/viewerjs) をTwitterで使えるようにします。
+
+※ Twitter Image Asist for React versionを入れないと動きませんが、 `getHrefs()` を対象とする画像の href を含んだ配列を返すように変更すれば、このスクリプト単体で動きます。
