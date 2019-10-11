@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name        Twitter Image Viewer
 // @namespace   https://github.com/horyu
-// @description ViewerjsをTwitterで使えるようにします。
+// @description ViewerjsをTwitterで使えるようにします。左側のメインメニューに追加された「View」ボタンで現在のタイムラインから取得できた画像をで開きます。デフォルトでは「Twitter Image Asist for React version」が必要となります、
 // @include     https://twitter.com/*
-// @version     0.0.1
+// @version     0.0.2
 // @run-at      document-end
 // @noframes
 // @grant       GM_getResourceText
@@ -51,8 +51,8 @@ function addViewButton() {
 function setViewer() {
     const galleryDiv = document.createElement('div');
     galleryDiv.style.display = 'none';
-    const hrefs = getHrefs();
-    hrefs.forEach(href => {
+    const imgURLs = getImgURLs();
+    imgURLs.forEach(href => {
         const img = document.createElement('img');
         img.src = href;
         galleryDiv.appendChild(img);
@@ -65,14 +65,14 @@ function setViewer() {
     });
 }
 
-function getHrefs() {
-    let hrefs = [];
+function getImgURLs() {
+    const imgURLs = [];
     document.querySelectorAll('.horyususerscript-container').forEach(div => {
         Array.from(div.querySelectorAll('a'))
             .sort((x, y) => x.style.order > y.style.order)
-            .forEach(a => hrefs.push(a.getAttribute('href')));
+            .forEach(a => imgURLs.push(a.getAttribute('href')));
     });
-    return hrefs;
+    return imgURLs;
 }
 
 //
