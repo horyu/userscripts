@@ -3,7 +3,7 @@
 // @namespace   https://github.com/horyu
 // @description ViewerjsをTwitterで使えるようにします。左側のメインメニューに追加された「View」ボタンで現在のタイムラインから取得できた画像をで開きます。デフォルトでは「Twitter Image Asist for React version」が必要となります、
 // @include     https://twitter.com/*
-// @version     0.0.2
+// @version     0.0.3
 // @run-at      document-end
 // @noframes
 // @grant       GM_getResourceText
@@ -12,6 +12,27 @@
 // ==/UserScript==
 
 'use strict';
+
+// https://fengyuanchen.github.io/viewerjs/
+// https://github.com/fengyuanchen/viewerjs#options
+const viewerOptions = {
+    backdrop: true,
+    button: false,
+    navbar: true,
+    title: false,
+    toolbar: true,
+    tooltip: false,
+    movable: true,
+    zoomable: true,
+    rotatable: true,
+    scalable: true,
+    transition: false,
+    fullscreen: true,
+    keyboard: true,
+    backdrop: true,
+    loop: true,
+    loading: true,
+};
 
 function init() {
     document.addEventListener('DOMContentLoaded', () => {
@@ -58,7 +79,7 @@ function setViewer() {
         galleryDiv.appendChild(img);
     });
     document.body.appendChild(galleryDiv);
-    const gallery = new Viewer(galleryDiv);
+    const gallery = new Viewer(galleryDiv, viewerOptions);
     gallery.view(0);
     galleryDiv.addEventListener('hidden', () => {
         galleryDiv.remove();
