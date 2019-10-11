@@ -53,6 +53,6 @@ __Twitter Image Viewer__
 
 <a href="TwitterImageViewer.user.js?raw=true">Install Link</a>
 
-[fengyuanchen](https://github.com/fengyuanchen)/[viewerjs](https://github.com/fengyuanchen/viewerjs) をTwitterで使えるようにします。
+左側のメインメニューに追加された「View」ボタンをクリックすることで、現在のタイムラインから取得できた画像を [fengyuanchen](https://github.com/fengyuanchen)/[viewerjs](https://github.com/fengyuanchen/viewerjs)(v1.3.7) で開きます。
 
-※ Twitter Image Asist for React versionを入れないと動きませんが、 `getHrefs()` を対象とする画像の href を含んだ配列を返すように変更すれば、このスクリプト単体で動きます。
+※ Twitter Image Asist for React versionを入れないと動きませんが、 `getHrefs()` を対象とする画像URLの配列を返すように変更すれば、このスクリプト単体で動きます。
