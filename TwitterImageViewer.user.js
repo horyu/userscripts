@@ -3,7 +3,7 @@
 // @namespace   https://github.com/horyu
 // @description ViewerjsをTwitterで使えるようにします。左側のメインメニューに追加された「View」ボタンで現在のタイムラインから取得できた画像をで開きます。デフォルトでは「Twitter Image Asist for React version」が必要となります、
 // @include     https://twitter.com/*
-// @version     0.0.4
+// @version     0.0.5
 // @run-at      document-end
 // @noframes
 // @grant       GM_getResourceText
@@ -58,24 +58,31 @@ function addStyle() {
 function addViewButton() {
     const btn = document.createElement('button');
     btn.innerText = 'View';
-    btn.onclick = setViewer;
+    btn.onclick = () => {
+        setViewer(true);
+    }
+    btn.oncontextmenu = (e) => {
+        e.preventDefault();
+        setViewer(false);
+        return false;
+    }
     const id = setInterval(() => {
         const ele = document.querySelector('[aria-label="メインメニュー"]');
         if (ele) {
-            ele.append(btn);
+            ele.appendChild(btn);
             clearInterval(id);
         }
     }, 1000);
 };
 
 /* global Viewer */
-function setViewer() {
+function setViewer(specificAccount) {
     const galleryDiv = document.createElement('div');
     galleryDiv.style.display = 'none';
-    const imgURLs = getImgURLs();
-    imgURLs.forEach(href => {
+    const imgURLs = getImgURLs(specificAccount);
+    imgURLs.forEach(url => {
         const img = document.createElement('img');
-        img.src = href;
+        img.src = url;
         galleryDiv.appendChild(img);
     });
     document.body.appendChild(galleryDiv);
@@ -86,7 +93,7 @@ function setViewer() {
     });
 }
 
-function getImgURLs() {
+function getImgURLs(specificAccount) {
     const targetDivs = [];
     const containerSelector = '.horyususerscript-container';
     const rowDiv = document.querySelector('.horyususerscript-row-container');
@@ -100,6 +107,13 @@ function getImgURLs() {
                 afterRow = true;
             }
         });
+        if (specificAccount) {
+            const getName = (div) => div.closest('article').querySelector('a').getAttribute('href');
+            const accountName = getName(rowDiv);
+            for (let i = targetDivs.length - 1; i >= 0; i--) {
+                if (getName(targetDivs[i]) !== accountName) targetDivs.splice(i, 1);
+            }
+        }
     } else {
         document.querySelectorAll(containerSelector).forEach(div => {
             targetDivs.push(div);
