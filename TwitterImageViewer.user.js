@@ -3,7 +3,7 @@
 // @namespace   https://github.com/horyu
 // @description ViewerjsをTwitterで使えるようにします。左側のメインメニューに追加された「View」ボタンで現在のタイムラインから取得できた画像をで開きます。デフォルトでは「Twitter Image Asist for React version」が必要となります、
 // @include     https://twitter.com/*
-// @version     0.0.3
+// @version     0.0.4
 // @run-at      document-end
 // @noframes
 // @grant       GM_getResourceText
@@ -48,7 +48,7 @@ function init() {
 function addStyle() {
     const styleEle = document.createElement('style');
     styleEle.textContent = GM_getResourceText('ViewerjsCSS');;
-    document.head.append(styleEle);
+    document.head.appendChild(styleEle);
 }
 
 //
@@ -87,8 +87,26 @@ function setViewer() {
 }
 
 function getImgURLs() {
+    const targetDivs = [];
+    const containerSelector = '.horyususerscript-container';
+    const rowDiv = document.querySelector('.horyususerscript-row-container');
+    if (rowDiv) {
+        targetDivs.push(rowDiv);
+        let afterRow = false;
+        document.querySelectorAll(containerSelector).forEach(div => {
+            if (afterRow) {
+                targetDivs.push(div);
+            } else if (div === rowDiv) {
+                afterRow = true;
+            }
+        });
+    } else {
+        document.querySelectorAll(containerSelector).forEach(div => {
+            targetDivs.push(div);
+        });
+    }
     const imgURLs = [];
-    document.querySelectorAll('.horyususerscript-container').forEach(div => {
+    targetDivs.forEach(div => {
         Array.from(div.querySelectorAll('a'))
             .sort((x, y) => x.style.order > y.style.order)
             .forEach(a => imgURLs.push(a.getAttribute('href')));
