@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name        Twitter Image Viewer
 // @namespace   https://github.com/horyu
-// @description 左側のメインメニューに追加された「View」ボタンで現在のタイムラインから取得できた画像をビューアーのように開きます。[画像の右側クリック/右キー入力]で次の画像、[画像の左側クリック/左キー入力]で前の画像、Escでビューアーを終了します。デフォルトでは「Twitter Image Asist for React version」が必要となります、
+// @description 左側のメインメニューに追加された「View」ボタンで現在のタイムラインから取得できた画像をビューアーで開きます。[画像の右側クリック/右キー入力]で次の画像、[画像の左側クリック/左キー入力]で前の画像、Escでビューアーを終了します。マウスホイールで画像の拡大/縮小ができます。デフォルトでは「Twitter Image Asist for React version」が必要となります。
 // @include     https://twitter.com/*
-// @version     0.1.0
+// @version     0.1.1
 // @run-at      document-end
 // @noframes
 // @require     https://gist.githubusercontent.com/horyu/148a014c447b4a9fbedad1b85e5be77f/raw/82bf75a13c191cf2698332f119c7f8485622dde4/wheelzoom.js
