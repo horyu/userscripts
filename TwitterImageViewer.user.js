@@ -3,7 +3,7 @@
 // @namespace   https://github.com/horyu
 // @description 左側のメインメニューに追加された「View」ボタンで現在のタイムラインから取得できた画像をビューアーで開きます。[画像の右側クリック/右キー入力]で次の画像、[画像の左側クリック/左キー入力]で前の画像、Escでビューアーを終了します。マウスホイールで画像の拡大/縮小ができます。デフォルトでは「Twitter Image Asist for React version」が必要となります。
 // @include     https://twitter.com/*
-// @version     0.2.0
+// @version     0.3.0
 // @run-at      document-end
 // @noframes
 // @require     https://gist.githubusercontent.com/horyu/148a014c447b4a9fbedad1b85e5be77f/raw/82bf75a13c191cf2698332f119c7f8485622dde4/wheelzoom.js
@@ -121,15 +121,18 @@ class OreViewer {
     start(urls) {
         if (urls.length === 0) return;
         this.index = 0;
-        this.urls = urls;
-        const img = document.createElement('img'); // preload
-        for (const url of urls) img.src = url; // preload
+        this.imgs = urls.map(url => {
+            const img = document.createElement('img');
+            img.src = url;
+            img.className = `${cssPrefix}-img`;
+            return img;
+        });
         this.root.style.display = '';
         this.setImg();
     }
     addIndex(diff) {
         this.index += diff;
-        if ((this.index < 0) || (this.index === this.urls.length)) {
+        if ((this.index < 0) || (this.index === this.imgs.length)) {
             this.root.style.display = 'none';
         } else {
             this.setImg();
@@ -137,8 +140,7 @@ class OreViewer {
     }
     setImg() {
         const oldChild = this.root.firstChild;
-        const newChild = document.createElement('img');
-        newChild.className = `${cssPrefix}-img`;
+        const newChild = this.imgs[this.index].cloneNode();
         let func = () => {
             if (this.resize) resizeImg(newChild);
              // wheelzoom が src を書き換えるので load を remove
@@ -146,7 +148,6 @@ class OreViewer {
             window.wheelzoom(newChild);
         };
         newChild.addEventListener('load', func);
-        newChild.src = this.urls[this.index];
         this.root.appendChild(newChild);
         if (oldChild) oldChild.remove();
     }
