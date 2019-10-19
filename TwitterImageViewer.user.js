@@ -3,7 +3,7 @@
 // @namespace   https://github.com/horyu
 // @description 左側のメインメニューに追加された「View」ボタンで現在のタイムラインから取得できた画像をビューアーで開きます。[画像の右側クリック/右キー入力]で次の画像、[画像の左側クリック/左キー入力]で前の画像、Escでビューアーを終了します。マウスホイールで画像の拡大/縮小ができます。デフォルトでは「Twitter Image Asist for React version」が必要となります。
 // @include     https://twitter.com/*
-// @version     0.3.0
+// @version     0.3.1
 // @run-at      document-end
 // @noframes
 // @require     https://gist.githubusercontent.com/horyu/148a014c447b4a9fbedad1b85e5be77f/raw/82bf75a13c191cf2698332f119c7f8485622dde4/wheelzoom.js
@@ -139,27 +139,28 @@ class OreViewer {
         }
     }
     setImg() {
-        const oldChild = this.root.firstChild;
-        const newChild = this.imgs[this.index].cloneNode();
+        const oldImg = this.root.firstChild;
+        const oriImg = this.imgs[this.index];
+        const newImg = oriImg.cloneNode();
         let func = () => {
-            if (this.resize) resizeImg(newChild);
+            if (this.resize) this.resizeImg(newImg, oriImg);
              // wheelzoom が src を書き換えるので load を remove
-            newChild.removeEventListener('load', func);
-            window.wheelzoom(newChild);
+            newImg.removeEventListener('load', func);
+            window.wheelzoom(newImg);
         };
-        newChild.addEventListener('load', func);
-        this.root.appendChild(newChild);
-        if (oldChild) oldChild.remove();
+        newImg.addEventListener('load', func);
+        this.root.appendChild(newImg);
+        if (oldImg) oldImg.remove();
     }
-}
+    resizeImg(newImg, oldImg) {
+        // imgが縦長?
+        if ((oldImg.naturalHeight > oldImg.naturalWidth) || (oldImg.naturalHeight > window.innerHeight)) {
+            newImg.height = window.innerHeight;
+        } else {
+            newImg.width = window.innerWidth;
+        }
+    }
 
-function resizeImg(img) {
-    // imgが縦長?
-    if ((img.naturalHeight > img.naturalWidth) || (img.naturalHeight > window.innerHeight)) {
-        img.height = window.innerHeight;
-    } else {
-        img.width = window.innerWidth;
-    }
 }
 
 function getImgURLs(specificAccount) {
