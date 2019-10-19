@@ -53,6 +53,6 @@ __Twitter Image Viewer__
 
 <a href="TwitterImageViewer.user.js?raw=true">Install Link</a>
 
-左側のメインメニューに追加された「View」ボタンをクリックすることで、現在のタイムラインから取得できた画像を [fengyuanchen](https://github.com/fengyuanchen)/[viewerjs](https://github.com/fengyuanchen/viewerjs)(v1.3.7) で開きます。
+左側のメインメニューに追加された「View」ボタンで現在のタイムラインから取得できた画像をビューアーで開きます。[画像の右側クリック/右キー入力]で次の画像、[画像の左側クリック/左キー入力]で前の画像、Escでビューアーを終了します。マウスホイールで画像の拡大/縮小ができます。デフォルトでは「Twitter Image Asist for React version」が必要となります。
 
 ※ Twitter Image Asist for React versionを入れないと動きませんが、 `getImgURLs()` を対象とする画像URLの配列を返すように変更すれば、このスクリプト単体で動きます。
