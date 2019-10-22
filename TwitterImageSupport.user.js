@@ -3,7 +3,7 @@
 // @namespace   https://github.com/horyu
 // @description タイムライン（TL）の画像を左クリックすると専用のViewerで画像を開き、中クリックすると新規タブで画像だけを開きます。メインバーのViewボタンでTLの画像ツイートをまとめてViewerで開きます。
 // @include     https://twitter.com/*
-// @version     0.0.2
+// @version     0.0.3
 // @run-at      document-end
 // @noframes
 // @require     https://gist.githubusercontent.com/horyu/148a014c447b4a9fbedad1b85e5be77f/raw/82bf75a13c191cf2698332f119c7f8485622dde4/wheelzoom.js
@@ -98,12 +98,7 @@ function setStyle() {
 function addClickListener() {
     document.addEventListener('click', e => {
         const ele = e.target;
-        // IMGではない || タイムライン内ではない（＝多分個人ページ右上のメディア）
-        // || ViewerのIMGである || 画像ツイートのIMGではない(＝多分画像リンク付きツイート)
-        if ((ele.nodeName !== 'IMG') ||
-            (!ele.closest('[data-testid="primaryColumn"]')) ||
-            (ele.className === imgClassName) ||
-            (ele.alt !== "画像")) return;
+        if (isNonTargetElement(ele)) return;
         if (e.button === 1) { // 中クリック
             e.preventDefault();
             const imgURL = extractImgURL(ele);
@@ -122,6 +117,24 @@ function addClickListener() {
             OreViewer.start(imgURLs, index);
         }
     }, true);
+    if (window.chrome) {
+        document.addEventListener('auxclick', e => {
+            const ele = e.target;
+            if (isNonTargetElement(ele)) return;
+            e.preventDefault();
+            const imgURL = extractImgURL(ele);
+            window.open(imgURL);
+        }, true);
+    }
+}
+
+function isNonTargetElement(ele) {
+    // IMGではない || タイムライン内ではない（＝多分個人ページ右上のメディア）
+    // || ViewerのIMGである || 画像ツイートのIMGではない(＝多分画像リンク付きツイート)
+    return (ele.nodeName !== 'IMG') ||
+        (!ele.closest('[data-testid="primaryColumn"]')) ||
+        (ele.className === imgClassName) ||
+        (ele.alt !== "画像");
 }
 
 function extractImgURL(img) {
