@@ -41,6 +41,49 @@ __NicoManga ScrollButton__
 
 ---
 
+__Twitter Image Support__
+
+<a href="TwitterImageSupport.user.js?raw=true">Install Link</a>
+
+タイムライン（TL）の画像を左クリックすると専用のViewerで画像を開き、中クリックすると新規タブで画像だけを開きます。メインバーのViewボタンでTLの画像ツイートをまとめてViewerで開きます。詳しくは下の詳細をクリックして読んでください。
+
+<details>
+<summary>詳細</summary>
+
+```
+■クリックの詳細
+[TL中の画像ツイートの画像]
+  左クリック：そのツイートの画像でViewerを起動
+  右クリック：ブラウザの標準
+  中クリック：画像のみを新規タブで開く
+[通常のTLでメインバーのViewボタン]
+  左クリック：TLの画像でViewerを起動
+  右クリック：TLの画像でViewerを起動
+  中クリック：何もしない
+[個別のツイートを開いたTLでメインバーのViewボタン]
+  左クリック：個別ツイートのアカウントに絞って、個別ツイート以降の画像でViewerを起動
+  右クリック：個別ツイート以降の画像でViewerを起動
+  中クリック：何もしない
+
+■Viewerの機能
+Viewerの終了：EscキーでViewerを終了
+画像の切替：画面の左側をクリック・左キーで前の画像、右側をクリック・右キーで次の画像に切替
+　　　　　　※ 前か次の画像がない場合はViewerを終了
+画像の拡大：マウスホイールで画像を拡大
+画像の移動：拡大した状態の画像を左ドラッグで可視範囲を移動
+拡大表示の切替：fキーでViewerで開く画像を拡大表示に する・しない を切替
+　　　　　　　　※ 元画像が大きい場合は大きいまま
+
+■オプション
+swapLeftRight：Viewerの左側クリック・左キーと右側クリック・右キーで表示する画像を逆に
+             　する（true）・しない（false）
+expandImg：Viewerで画像を開く時、画像を拡大表示に標準で する（true）・しない（false）
+backgroundAlpha：Viewerの黒背景の透明度 0.0（透明）～1.0（不透明）
+```
+</details>
+
+---
+
 __Twitter Image Asist for React version__
 
 <a href="TwitterImageAssist.user.js?raw=true">Install Link</a>
