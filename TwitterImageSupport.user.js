@@ -3,7 +3,7 @@
 // @namespace   https://github.com/horyu
 // @description タイムライン（TL）の画像を左クリックすると専用のViewerで画像を開き、中クリックすると新規タブで画像だけを開きます。メインバーのViewボタンでTLの画像ツイートをまとめてViewerで開きます。
 // @include     https://twitter.com/*
-// @version     0.0.1
+// @version     0.0.2
 // @run-at      document-end
 // @noframes
 // @require     https://gist.githubusercontent.com/horyu/148a014c447b4a9fbedad1b85e5be77f/raw/82bf75a13c191cf2698332f119c7f8485622dde4/wheelzoom.js
@@ -116,7 +116,7 @@ function addClickListener() {
             const imgs = Array.from(art.querySelectorAll('img[alt="画像"]'));
             // 公式では 1 2                          |1|2|
             //          3 4 の順に表示されるが構造が |3|4| なので並び替え
-            if (imgs.length == 4) [imgs[1], imgs[2]] = [imgs[2], imgs[1]];
+            if (imgs.length === 4) [imgs[1], imgs[2]] = [imgs[2], imgs[1]];
             const index = imgs.indexOf(ele);
             const imgURLs = imgs.map(extractImgURL);
             OreViewer.start(imgURLs, index);
@@ -196,8 +196,8 @@ function getImgURLs(specificAccount) {
         const art = div.querySelector(':scope > div > article');
         if (!art) return;;
         // ユーザーアイコンIMGと画像ツイートIMGの違いが [alt="画像"]
-        const imgs = art.querySelectorAll('img[alt="画像"]');
-        if (imgs.length == 4) [imgs[1], imgs[2]] = [imgs[2], imgs[1]];
+        const imgs = Array.from(art.querySelectorAll('img[alt="画像"]'));
+        if (imgs.length === 4) [imgs[1], imgs[2]] = [imgs[2], imgs[1]];
         imgs.forEach(img => {
             imgURLs.push(extractImgURL(img));
         });
