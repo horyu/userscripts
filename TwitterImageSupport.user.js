@@ -3,7 +3,7 @@
 // @namespace   https://github.com/horyu
 // @description タイムライン（TL）の画像を左クリックすると専用のViewerで画像を開き、中クリックすると新規タブで画像だけを開きます。メインバーのViewボタンでTLの画像ツイートをまとめてViewerで開きます。詳細はスクリプト内部のコメントに記述してあります。
 // @include     https://twitter.com/*
-// @version     0.1.4
+// @version     0.1.5
 // @run-at      document-end
 // @noframes
 // ==/UserScript==
@@ -188,7 +188,7 @@ function getImgURLs(specificAccount) {
                 return a.getAttribute('href');
             };
             const targetAccountName = getName(tweetDivs[startIndex]);
-            // 対象アカウントではない div を後ろから削除していく
+            // 対象アカウントではないDIVを後ろから削除
             for (let i = targetDivs.length - 1; i >= 0; i--) {
                 if (getName(targetDivs[i]) !== targetAccountName) targetDivs.splice(i, 1);
             }
@@ -199,9 +199,13 @@ function getImgURLs(specificAccount) {
     const imgURLs = [];
     targetDivs.forEach(div => {
         const art = div.querySelector(':scope > div > article');
-        if (!art) return;;
+        if (!art) return;
         // ユーザーアイコンIMGを除くための [alt="画像"]
         const imgs = Array.from(art.querySelectorAll('img[alt="画像"]'));
+        // 引用部分のIMGを後ろから削除
+        for (let i = imgs.length - 1; i >= 0; i--) {
+            if (imgs[i].closest('[role="blockquote"]')) imgs.splice(i, 1);
+        }
         if (imgs.length === 4) [imgs[1], imgs[2]] = [imgs[2], imgs[1]];
         imgs.forEach(img => {
             imgURLs.push(extractImgURL(img));
