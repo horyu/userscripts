@@ -1,12 +1,11 @@
 // ==UserScript==
 // @name        Twitter Image Suport
 // @namespace   https://github.com/horyu
-// @description タイムライン（TL）の画像を左クリックすると専用のViewerで画像を開き、中クリックすると新規タブで画像だけを開きます。メインバーのViewボタンでTLの画像ツイートをまとめてViewerで開きます。
+// @description タイムライン（TL）の画像を左クリックすると専用のViewerで画像を開き、中クリックすると新規タブで画像だけを開きます。メインバーのViewボタンでTLの画像ツイートをまとめてViewerで開きます。詳細はスクリプト内部のコメントに記述してあります。
 // @include     https://twitter.com/*
-// @version     0.0.3
+// @version     0.1.4
 // @run-at      document-end
 // @noframes
-// @require     https://gist.githubusercontent.com/horyu/148a014c447b4a9fbedad1b85e5be77f/raw/82bf75a13c191cf2698332f119c7f8485622dde4/wheelzoom.js
 // ==/UserScript==
 'use strict';
 /*
@@ -28,12 +27,14 @@
 Viewerの終了：EscキーでViewerを終了
 画像の切替：画面の左側をクリック・左キーで前の画像、右側をクリック・右キーで次の画像に切替
 　　　　　　※ 前か次の画像がない場合はViewerを終了
-画像の拡大：マウスホイールで画像を拡大
-画像の移動：拡大した状態の画像を左ドラッグで可視範囲を移動
+画像の拡大縮小：マウスホイールで画像を拡大縮小
+　　　　　　　　※拡大縮小しすぎると表示が崩れる可能性あり
+画像の移動：画像をドラッグで移動
+画像のリセット：ホイールクリックで画像の拡大縮小と位置をリセット
 拡大表示の切替：fキーでViewerで開く画像を拡大表示に する・しない を切替
 　　　　　　　　※ 元画像が大きい場合は大きいまま
 
-■オプション（この行から9～11行下）
+■オプション（この行から10～12行下）
 swapLeftRight：Viewerの左側クリック・左キーと右側クリック・右キーで表示する画像を逆に
              　する（true）・しない（false）
 expandImg：Viewerで画像を開く時、画像を拡大表示に標準で する（true）・しない（false）
@@ -42,9 +43,11 @@ backgroundAlpha：Viewerの黒背景の透明度 0.0（透明）～1.0（不透�
 //
 // オプション ここから
 //
-const swapLeftRight = false;
-const expandImg = true;
-const backgroundAlpha = 0.5;
+const options = {
+    swapLeftRight   : false,
+    expandImg       : true,
+    backgroundAlpha : 0.5,
+};
 //
 // オプション ここまで
 //
@@ -61,31 +64,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
 const cssPrefix = 'horyususerscript-tis';
 const rootClassName = `${cssPrefix}-root`;
-const imgClassName = `${cssPrefix}-img`;
+const wrapperClassName = `${cssPrefix}-wrapper`;
 
 function setStyle() {
     const style = document.createElement('style');
     style.textContent = `
 .${rootClassName} {
-    z-index: 9999;
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background-color: rgba(0, 0, 0, ${parseFloat(backgroundAlpha) || 0.5});
+z-index: 9999;
+position: fixed;
+top: 0;
+bottom: 0;
+left: 0;
+right: 0;
+background-color: rgba(0, 0, 0, ${parseFloat(options.backgroundAlpha) || 0.5});
+padding: 5px;
 }
 
-.${imgClassName} {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    max-width: calc(100% - 10px);
-    max-height: calc(100% - 10px);
-    object-fit: contain;
-    -moz-user-select: none;
-    user-select: none;
+.${wrapperClassName} {
+width: 100%;
+height: 100%;
 }
 `;
     document.head.append(style);
@@ -99,22 +96,21 @@ function addClickListener() {
     document.addEventListener('click', e => {
         const ele = e.target;
         if (isNonTargetElement(ele)) return;
-        if (e.button === 1) { // 中クリック
+        if (e.button === 0) { // 左クリック
             e.preventDefault();
-            const imgURL = extractImgURL(ele);
-            window.open(imgURL);
-        } else if (e.button === 0) { // 左クリック
-            e.preventDefault();
-            //e.stopPropagation();
             const art = ele.closest('article');
             if (!art) return;
             const imgs = Array.from(art.querySelectorAll('img[alt="画像"]'));
-            // 公式では 1 2                          |1|2|
-            //          3 4 の順に表示されるが構造が |3|4| なので並び替え
+            // 公式では 0 1                          |0|1|
+            //          2 3 の順に表示されるが構造が |2|3| なので並び替え
             if (imgs.length === 4) [imgs[1], imgs[2]] = [imgs[2], imgs[1]];
             const index = imgs.indexOf(ele);
             const imgURLs = imgs.map(extractImgURL);
             OreViewer.start(imgURLs, index);
+        } else if (e.button === 1) { // 中クリック
+            e.preventDefault();
+            const imgURL = extractImgURL(ele);
+            window.open(imgURL);
         }
     }, true);
     if (window.chrome) {
@@ -130,11 +126,10 @@ function addClickListener() {
 
 function isNonTargetElement(ele) {
     // IMGではない || タイムライン内ではない（＝多分個人ページ右上のメディア）
-    // || ViewerのIMGである || 画像ツイートのIMGではない(＝多分画像リンク付きツイート)
-    return (ele.nodeName !== 'IMG') ||
-        (!ele.closest('[data-testid="primaryColumn"]')) ||
-        (ele.className === imgClassName) ||
-        (ele.alt !== "画像");
+    // || 画像ツイートのIMGではない(＝多分画像リンク付きツイート)
+    return ((ele.nodeName !== 'IMG') ||
+            (!ele.closest('[data-testid="primaryColumn"]')) ||
+            (ele.alt !== '画像'));
 }
 
 function extractImgURL(img) {
@@ -151,8 +146,7 @@ function addViewButton() {
     const btn = document.createElement('button');
     btn.innerText = 'View';
     btn.onclick = () => {
-        // 連打対策
-        if (OreViewer.isVisible) return;
+        if (OreViewer.isVisible()) return; // 連打対策
         OreViewer.start(getImgURLs(true));
     }
     btn.oncontextmenu = e => {
@@ -181,10 +175,8 @@ function getImgURLs(specificAccount) {
             'a[href="https://help.twitter.com/using-twitter/how-to-tweet#source-labels"]'
         ));
         if (startIndex == -1) {
-            alert(
-                "個別ツイートが見つかりません。\n" +
-                "個別ツイートが読み込まれる所までスクロールしてください。"
-            );
+            alert('個別ツイートが見つかりません。\n' +
+                  '個別ツイートが読み込まれる所までスクロールしてください。');
             return [];
         }
         for (let i = startIndex; i < tweetDivs.length; i++) targetDivs.push(tweetDivs[i]);
@@ -192,7 +184,7 @@ function getImgURLs(specificAccount) {
             const getName = div => {
                 // [data-testid="tweet"] がないと ○○さんがリツイート の a につかまる
                 const a = div.querySelector('[data-testid="tweet"] a');
-                if (!a) return; // 個別ツイートの次の div は空
+                if (!a) return; // 個別ツイートの次のDIVは空
                 return a.getAttribute('href');
             };
             const targetAccountName = getName(tweetDivs[startIndex]);
@@ -208,7 +200,7 @@ function getImgURLs(specificAccount) {
     targetDivs.forEach(div => {
         const art = div.querySelector(':scope > div > article');
         if (!art) return;;
-        // ユーザーアイコンIMGと画像ツイートIMGの違いが [alt="画像"]
+        // ユーザーアイコンIMGを除くための [alt="画像"]
         const imgs = Array.from(art.querySelectorAll('img[alt="画像"]'));
         if (imgs.length === 4) [imgs[1], imgs[2]] = [imgs[2], imgs[1]];
         imgs.forEach(img => {
@@ -219,14 +211,167 @@ function getImgURLs(specificAccount) {
 }
 
 //
+// OreCanvas
+//
+
+const OreCanvas = (() => {
+    let canvas;
+    let ctx;
+    let wrapper;
+    function initialize(newCanvas, newWrapper) {
+        canvas = newCanvas;
+        ctx = canvas.getContext('2d');
+        wrapper = newWrapper;
+        trackTransforms(ctx);
+        ctx.save();
+        addDragAndZoom();
+    }
+
+    let img;
+    let expand;
+    let drawFunc;
+    function setImg(newImg, expandImg) {
+        canvas.width = wrapper.clientWidth;
+        canvas.height = wrapper.clientHeight;
+        img = newImg;
+        expand = expandImg;
+        ctx.restore();
+        ctx.save();
+        if (!expand && (newImg.width < canvas.width) && (newImg.height < canvas.height)) {
+            drawFunc = drawImageOriginal;
+        } else {
+            drawFunc = drawImageScaled;
+        }
+        drawFunc();
+    }
+
+    // https://stackoverflow.com/questions/5189968/zoom-canvas-to-mouse-cursor#answer-5526721
+    function trackTransforms(ctx) {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        let xform = svg.createSVGMatrix();
+
+        const savedTransforms = [];
+        const save = ctx.save;
+        ctx.save = () => {
+            savedTransforms.push(xform.translate(0, 0));
+            return save.call(ctx);
+        };
+        const restore = ctx.restore;
+        ctx.restore = () => {
+            xform = savedTransforms.pop();
+            return restore.call(ctx);
+        };
+
+        const scale = ctx.scale;
+        ctx.scale = (sx, sy) => {
+            xform = xform.scaleNonUniform(sx, sy);
+            return scale.call(ctx, sx, sy);
+        };
+        const translate = ctx.translate;
+        ctx.translate = (dx, dy) => {
+            xform = xform.translate(dx, dy);
+            return translate.call(ctx, dx, dy);
+        };
+        const transform = ctx.transform;
+        ctx.transform = (a, b, c, d, e, f) => {
+            const m2 = svg.createSVGMatrix();
+            m2.a = a; m2.b = b; m2.c = c; m2.d = d; m2.e = e; m2.f = f;
+            xform = xform.multiply(m2);
+            return transform.call(ctx, a, b, c, d, e, f);
+        };
+        const pt = svg.createSVGPoint();
+        ctx.transformedPoint = (x, y) => {
+            pt.x = x; pt.y = y;
+            return pt.matrixTransform(xform.inverse());
+        }
+    }
+
+    function addDragAndZoom() {
+        let lastX = canvas.width / 2;
+        let lastY = canvas.height / 2;
+        let dragStart = null;
+        let dragged = false;
+        canvas.addEventListener('mousedown', e => {
+            if (e.button === 0) { // 左クリック
+                lastX = e.offsetX;
+                lastY = e.offsetY;
+                dragStart = ctx.transformedPoint(lastX, lastY);
+                dragged = false;
+            } else if (e.button === 1) { // 中クリック
+                e.preventDefault();
+                setImg(img, expand);
+            }
+        });
+        canvas.addEventListener('mousemove', e => {
+            lastX = e.offsetX;
+            lastY = e.offsetY;
+            if (dragStart) {
+                const pt = ctx.transformedPoint(lastX, lastY);
+                ctx.translate(pt.x - dragStart.x, pt.y - dragStart.y);
+                redraw();
+            }
+            dragged = true;
+        });
+        canvas.addEventListener('mouseup', e => {
+            dragStart = null;
+        });
+
+        const scaleFactor = 1.1;
+        const zoom = delta => {
+            const pt = ctx.transformedPoint(lastX, lastY);
+            ctx.translate(pt.x, pt.y);
+            const factor = Math.pow(scaleFactor, delta);
+            ctx.scale(factor, factor);
+            ctx.translate(-pt.x, -pt.y);
+            redraw();
+        }
+
+        const handleScroll = e => {
+            const delta = e.detail ? -e.detail / 10 : e.wheelDelta ? e.wheelDelta / 80 : 0;
+            if (delta) zoom(delta);
+            e.preventDefault();
+            return false;
+        };
+        canvas.addEventListener('DOMMouseScroll', handleScroll); // Firefox
+        canvas.addEventListener('mousewheel', handleScroll); // Chrome
+    }
+
+    function redraw() {
+        const p1 = ctx.transformedPoint(0, 0);
+        const p2 = ctx.transformedPoint(canvas.width, canvas.height);
+        ctx.clearRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
+        drawFunc();
+    }
+
+    // https://stackoverflow.com/questions/23104582/scaling-an-image-to-fit-on-canvas#answer-23105310
+    function drawImageOriginal() {
+        ctx.drawImage(img, (canvas.width - img.width) / 2, (canvas.height - img.height) / 2);
+    }
+
+    // https://stackoverflow.com/questions/23104582/scaling-an-image-to-fit-on-canvas#answer-23105310
+    function drawImageScaled() {
+        const hRatio = canvas.width / img.width;
+        const vRatio = canvas.height / img.height;
+        const ratio = Math.min(hRatio, vRatio);
+        const centerShiftX = (canvas.width - img.width * ratio) / 2;
+        const centerShiftY = (canvas.height - img.height * ratio) / 2;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, img.width, img.height,
+                      centerShiftX, centerShiftY, img.width * ratio, img.height * ratio);
+    }
+
+    return { initialize, setImg };
+})();
+
+//
 // OreViewer
 //
 
 const OreViewer = new (class {
-    constructor(reverse, resize) {
+    constructor(swapLeftRight, expandImg) {
+        // root とイベントの設定
         this.root = document.createElement('div');
         this.root.className = rootClassName;
-        this.hide();
         let isSimpleClick = true;
         this.root.onmousedown = () => {
             isSimpleClick = true;
@@ -238,23 +383,23 @@ const OreViewer = new (class {
             if (isSimpleClick && (e.button === 0)) {
                 // クリックが画面の右側なら +1(次の画像) 左側なら -1(前の画像)
                 let diff = (e.clientX > (this.root.clientWidth / 2) ? 1 : -1);
-                if (reverse) diff *= -1;
+                if (swapLeftRight) diff *= -1;
                 this.addIndex(diff);
             }
         };
-        this.resize = resize;
+        this.expandImg = expandImg;
         document.addEventListener('keydown', e => {
-            if (!this.isVisible) return;
+            if (!this.isVisible()) return;
             switch (e.key) {
                 case 'ArrowLeft':
-                    this.addIndex(reverse ? 1 : -1);
+                    this.addIndex(swapLeftRight ? 1 : -1);
                     break;
                 case 'ArrowRight':
-                    this.addIndex(reverse ? -1 : 1);
+                    this.addIndex(swapLeftRight ? -1 : 1);
                     break;
                 case 'f':
                 case 'F':
-                    this.resize = !this.resize;
+                    this.expandImg = !this.expandImg;
                     this.setImg();
                     break;
                 case 'Escape':
@@ -262,6 +407,16 @@ const OreViewer = new (class {
                     break;
             }
         });
+        // OreCanvasの設定
+        const wrapper = document.createElement('div');
+        wrapper.className = wrapperClassName;
+        this.root.appendChild(wrapper);
+        const canvas = document.createElement('canvas');
+        wrapper.appendChild(canvas);
+        OreCanvas.initialize(canvas, wrapper);
+        this.emptyImg = new Image;
+        // DOMに追加
+        this.hide();
         document.body.appendChild(this.root);
     }
     start(urls, index = 0) {
@@ -270,11 +425,10 @@ const OreViewer = new (class {
         this.imgs = urls.map(url => {
             const img = document.createElement('img');
             img.src = url;
-            img.className = imgClassName;
             return img;
         });
-        this.show();
         this.setImg();
+        this.show();
     }
     addIndex(diff) {
         this.index += diff;
@@ -285,36 +439,18 @@ const OreViewer = new (class {
         }
     }
     setImg() {
-        const oldImg = this.root.firstChild;
-        const oriImg = this.imgs[this.index];
-        const newImg = oriImg.cloneNode();
-        const func = () => {
-            if (this.resize) this.resizeImg(newImg, oriImg);
-            // wheelzoom が src を書き換えるので load を remove
-            newImg.removeEventListener('load', func);
-            window.wheelzoom(newImg);
-        };
-        newImg.addEventListener('load', func);
-        this.root.appendChild(newImg);
-        if (oldImg) oldImg.remove();
+        const img = this.imgs[this.index];
+        if (img.complete) OreCanvas.setImg(img, this.expandImg);
+        img.onload = () => OreCanvas.setImg(img, this.expandImg);
     }
-    resizeImg(newImg, oriImg) {
-        const imageRatio = oriImg.naturalHeight / oriImg.naturalWidth;
-        const windowRatio = window.innerHeight / window.innerWidth;
-        // 画像の横縦比がウィンドウの横縦比より 大きい・同じ / 小さい
-        if (imageRatio >= windowRatio) {
-            newImg.height = window.innerHeight;
-        } else {
-            newImg.width = window.innerWidth;
-        }
-    }
-    get isVisible() {
-        return this.root.style.display === '';
+    isVisible() {
+        return (this.root.style.display === '');
     }
     show() {
         this.root.style.display = '';
     }
     hide() {
         this.root.style.display = 'none';
+        OreCanvas.setImg(this.emptyImg); // show() したときに前のIMGが表示されうるので空IMGを登録
     }
-})(!!swapLeftRight, !!expandImg);
+})(!!options.swapLeftRight, !!options.expandImg);
