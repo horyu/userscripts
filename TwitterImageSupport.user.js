@@ -3,8 +3,8 @@
 // @namespace   https://github.com/horyu
 // @description タイムライン（TL）の画像を左クリックすると専用のViewerで画像を開き、中クリックすると新規タブで画像だけを開きます。メインバーのViewボタンでTLの画像ツイートをまとめてViewerで開きます。詳細はスクリプト内部のコメントに記述してあります。
 // @include     https://twitter.com/*
-// @version     0.1.5
-// @run-at      document-end
+// @version     0.1.6
+// @run-at      document-start
 // @noframes
 // ==/UserScript==
 'use strict';
@@ -100,10 +100,7 @@ function addClickListener() {
             e.preventDefault();
             const art = ele.closest('article');
             if (!art) return;
-            const imgs = Array.from(art.querySelectorAll('img[alt="画像"]'));
-            // 公式では 0 1                          |0|1|
-            //          2 3 の順に表示されるが構造が |2|3| なので並び替え
-            if (imgs.length === 4) [imgs[1], imgs[2]] = [imgs[2], imgs[1]];
+            const imgs = extractImgs(art);
             const index = imgs.indexOf(ele);
             const imgURLs = imgs.map(extractImgURL);
             OreViewer.start(imgURLs, index);
@@ -130,6 +127,18 @@ function isNonTargetElement(ele) {
     return ((ele.nodeName !== 'IMG') ||
             (!ele.closest('[data-testid="primaryColumn"]')) ||
             (ele.alt !== '画像'));
+}
+
+function extractImgs(art) {
+    const imgs = Array.from(art.querySelectorAll('img[alt="画像"]'));
+    // 引用部分のIMGを後ろから削除
+    for (let i = imgs.length - 1; i >= 0; i--) {
+        if (imgs[i].closest('[role="blockquote"]')) imgs.splice(i, 1);
+    }
+    // 公式では 0 1                          |0|1|
+    //          2 3 の順に表示されるが構造が |2|3| なので並び替え
+    if (imgs.length === 4) [imgs[1], imgs[2]] = [imgs[2], imgs[1]];
+    return imgs;
 }
 
 function extractImgURL(img) {
@@ -161,7 +170,7 @@ function addViewButton() {
             clearInterval(intervalID);
         }
     }, 1000);
-};
+}
 
 function getImgURLs(specificAccount) {
     const tweetDivs = Array.from(document.querySelectorAll(
@@ -174,7 +183,7 @@ function getImgURLs(specificAccount) {
         const startIndex = tweetDivs.findIndex(div => !!div.querySelector(
             'a[href="https://help.twitter.com/using-twitter/how-to-tweet#source-labels"]'
         ));
-        if (startIndex == -1) {
+        if (startIndex === -1) {
             alert('個別ツイートが見つかりません。\n' +
                   '個別ツイートが読み込まれる所までスクロールしてください。');
             return [];
@@ -182,7 +191,7 @@ function getImgURLs(specificAccount) {
         for (let i = startIndex; i < tweetDivs.length; i++) targetDivs.push(tweetDivs[i]);
         if (specificAccount) {
             const getName = div => {
-                // [data-testid="tweet"] がないと ○○さんがリツイート の a につかまる
+                // [data-testid="tweet"] がないと ○○さんがリツイート のAにつかまる
                 const a = div.querySelector('[data-testid="tweet"] a');
                 if (!a) return; // 個別ツイートの次のDIVは空
                 return a.getAttribute('href');
@@ -200,13 +209,7 @@ function getImgURLs(specificAccount) {
     targetDivs.forEach(div => {
         const art = div.querySelector(':scope > div > article');
         if (!art) return;
-        // ユーザーアイコンIMGを除くための [alt="画像"]
-        const imgs = Array.from(art.querySelectorAll('img[alt="画像"]'));
-        // 引用部分のIMGを後ろから削除
-        for (let i = imgs.length - 1; i >= 0; i--) {
-            if (imgs[i].closest('[role="blockquote"]')) imgs.splice(i, 1);
-        }
-        if (imgs.length === 4) [imgs[1], imgs[2]] = [imgs[2], imgs[1]];
+        const imgs = extractImgs(art);
         imgs.forEach(img => {
             imgURLs.push(extractImgURL(img));
         });
@@ -316,7 +319,7 @@ const OreCanvas = (() => {
             }
             dragged = true;
         });
-        canvas.addEventListener('mouseup', e => {
+        canvas.addEventListener('mouseup', () => {
             dragStart = null;
         });
 
@@ -373,6 +376,8 @@ const OreCanvas = (() => {
 
 const OreViewer = new (class {
     constructor(swapLeftRight, expandImg) {
+        const [left, right] = (swapLeftRight ? [1, -1] : [-1, 1]); // 1が次の画像 -1が前の画像
+        this.expandImg = expandImg;
         // root とイベントの設定
         this.root = document.createElement('div');
         this.root.className = rootClassName;
@@ -385,21 +390,19 @@ const OreViewer = new (class {
         };
         this.root.onmouseup = e => {
             if (isSimpleClick && (e.button === 0)) {
-                // クリックが画面の右側なら +1(次の画像) 左側なら -1(前の画像)
-                let diff = (e.clientX > (this.root.clientWidth / 2) ? 1 : -1);
-                if (swapLeftRight) diff *= -1;
+                // クリックが画面の左側か右側か
+                const diff = (e.clientX < (this.root.clientWidth / 2) ? left : right);
                 this.addIndex(diff);
             }
         };
-        this.expandImg = expandImg;
         document.addEventListener('keydown', e => {
             if (!this.isVisible()) return;
             switch (e.key) {
                 case 'ArrowLeft':
-                    this.addIndex(swapLeftRight ? 1 : -1);
+                    this.addIndex(left);
                     break;
                 case 'ArrowRight':
-                    this.addIndex(swapLeftRight ? -1 : 1);
+                    this.addIndex(right);
                     break;
                 case 'f':
                 case 'F':
@@ -420,7 +423,7 @@ const OreViewer = new (class {
         OreCanvas.initialize(canvas, wrapper);
         this.emptyImg = new Image;
         // DOMに追加
-        this.hide();
+        this.hide(); // OreCanvas設定前に hide() するとOreCanvasの設定ができなくなる
         document.body.appendChild(this.root);
     }
     start(urls, index = 0) {
