@@ -3,7 +3,7 @@
 // @namespace   https://github.com/horyu
 // @description タイムライン（TL）の画像を左クリックすると専用のViewerで画像を開き、中クリックすると新規タブで画像だけを開きます。メインバーのViewボタンでTLの画像ツイートをまとめてViewerで開きます。詳細はスクリプト内部のコメントに記述してあります。
 // @include     https://twitter.com/*
-// @version     0.1.6
+// @version     0.1.7
 // @run-at      document-start
 // @noframes
 // ==/UserScript==
@@ -112,6 +112,7 @@ function addClickListener() {
     }, true);
     if (window.chrome) {
         document.addEventListener('auxclick', e => {
+            if (e.button !== 1) return;
             const ele = e.target;
             if (isNonTargetElement(ele)) return;
             e.preventDefault();
