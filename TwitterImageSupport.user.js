@@ -3,7 +3,7 @@
 // @namespace   https://github.com/horyu
 // @description タイムライン（TL）の画像を左クリックすると専用のViewerで画像を開き、中クリックすると新規タブで画像だけを開きます。メインバーのViewボタンでTLの画像ツイートをまとめてViewerで開きます。詳細はスクリプト内部のコメントに記述してあります。
 // @include     https://twitter.com/*
-// @version     0.1.7
+// @version     0.2.0
 // @run-at      document-start
 // @noframes
 // ==/UserScript==
@@ -34,7 +34,7 @@ Viewerの終了：EscキーでViewerを終了
 拡大表示の切替：fキーでViewerで開く画像を拡大表示に する・しない を切替
 　　　　　　　　※ 元画像が大きい場合は大きいまま
 
-■オプション（この行から10～12行下）
+■オプション（書き換える所はこの行から9～11行下）
 swapLeftRight：Viewerの左側クリック・左キーと右側クリック・右キーで表示する画像を逆に
              　する（true）・しない（false）
 expandImg：Viewerで画像を開く時、画像を拡大表示に標準で する（true）・しない（false）
@@ -42,21 +42,24 @@ backgroundAlpha：Viewerの黒背景の透明度 0.0（透明）～1.0（不透�
 */
 //
 // オプション ここから
-//
 const options = {
     swapLeftRight   : false,
     expandImg       : true,
     backgroundAlpha : 0.5,
 };
-//
 // オプション ここまで
 //
 
-document.addEventListener('DOMContentLoaded', () => {
-    setStyle();
-    addClickListener();
-    addViewButton();
-});
+function init() {
+    document.addEventListener('DOMContentLoaded', () => {
+        setStyle();
+        const root = makeRoot();
+        OreCanvas.initialize(root);
+        OreViewer.initialize(root);
+        addClickEventListener(document);
+        addViewButton();
+    });
+}
 
 //
 // setStyle
@@ -85,137 +88,18 @@ width: 100%;
 height: 100%;
 }
 `;
-    document.head.append(style);
+    document.head.appendChild(style);
 }
 
 //
-// addClickListener()
+// makeRoot
 //
 
-function addClickListener() {
-    document.addEventListener('click', e => {
-        const ele = e.target;
-        if (isNonTargetElement(ele)) return;
-        if (e.button === 0) { // 左クリック
-            e.preventDefault();
-            const art = ele.closest('article');
-            if (!art) return;
-            const imgs = extractImgs(art);
-            const index = imgs.indexOf(ele);
-            const imgURLs = imgs.map(extractImgURL);
-            OreViewer.start(imgURLs, index);
-        } else if (e.button === 1) { // 中クリック
-            e.preventDefault();
-            const imgURL = extractImgURL(ele);
-            window.open(imgURL);
-        }
-    }, true);
-    if (window.chrome) {
-        document.addEventListener('auxclick', e => {
-            if (e.button !== 1) return;
-            const ele = e.target;
-            if (isNonTargetElement(ele)) return;
-            e.preventDefault();
-            const imgURL = extractImgURL(ele);
-            window.open(imgURL);
-        }, true);
-    }
-}
-
-function isNonTargetElement(ele) {
-    // IMGではない || タイムライン内ではない（＝多分個人ページ右上のメディア）
-    // || 画像ツイートのIMGではない(＝多分画像リンク付きツイート)
-    return ((ele.nodeName !== 'IMG') ||
-            (!ele.closest('[data-testid="primaryColumn"]')) ||
-            (ele.alt !== '画像'));
-}
-
-function extractImgs(art) {
-    const imgs = Array.from(art.querySelectorAll('img[alt="画像"]'));
-    // 引用部分のIMGを後ろから削除
-    for (let i = imgs.length - 1; i >= 0; i--) {
-        if (imgs[i].closest('[role="blockquote"]')) imgs.splice(i, 1);
-    }
-    // 公式では 0 1                          |0|1|
-    //          2 3 の順に表示されるが構造が |2|3| なので並び替え
-    if (imgs.length === 4) [imgs[1], imgs[2]] = [imgs[2], imgs[1]];
-    return imgs;
-}
-
-function extractImgURL(img) {
-    const url = new URL(img.src);
-    url.searchParams.delete('name');
-    return url.toString();
-}
-
-//
-// addViewButton
-//
-
-function addViewButton() {
-    const btn = document.createElement('button');
-    btn.innerText = 'View';
-    btn.onclick = () => {
-        if (OreViewer.isVisible()) return; // 連打対策
-        OreViewer.start(getImgURLs(true));
-    }
-    btn.oncontextmenu = e => {
-        e.preventDefault();
-        OreViewer.start(getImgURLs(false));
-        return false;
-    }
-    const intervalID = setInterval(() => {
-        const ele = document.querySelector('[aria-label="メインメニュー"]');
-        if (ele) {
-            ele.appendChild(btn);
-            clearInterval(intervalID);
-        }
-    }, 1000);
-}
-
-function getImgURLs(specificAccount) {
-    const tweetDivs = Array.from(document.querySelectorAll(
-        '[data-testid="primaryColumn"] [aria-label^="タイムライン:"] > div > div > div'
-    ));
-    let targetDivs = [];
-    // 個別ツイートの有無
-    if (location.pathname.includes('/status/')) {
-        // 個別ツイートなら ツイートソースラベル が表示されている（はず）
-        const startIndex = tweetDivs.findIndex(div => !!div.querySelector(
-            'a[href="https://help.twitter.com/using-twitter/how-to-tweet#source-labels"]'
-        ));
-        if (startIndex === -1) {
-            alert('個別ツイートが見つかりません。\n' +
-                  '個別ツイートが読み込まれる所までスクロールしてください。');
-            return [];
-        }
-        for (let i = startIndex; i < tweetDivs.length; i++) targetDivs.push(tweetDivs[i]);
-        if (specificAccount) {
-            const getName = div => {
-                // [data-testid="tweet"] がないと ○○さんがリツイート のAにつかまる
-                const a = div.querySelector('[data-testid="tweet"] a');
-                if (!a) return; // 個別ツイートの次のDIVは空
-                return a.getAttribute('href');
-            };
-            const targetAccountName = getName(tweetDivs[startIndex]);
-            // 対象アカウントではないDIVを後ろから削除
-            for (let i = targetDivs.length - 1; i >= 0; i--) {
-                if (getName(targetDivs[i]) !== targetAccountName) targetDivs.splice(i, 1);
-            }
-        }
-    } else {
-        targetDivs = tweetDivs;
-    }
-    const imgURLs = [];
-    targetDivs.forEach(div => {
-        const art = div.querySelector(':scope > div > article');
-        if (!art) return;
-        const imgs = extractImgs(art);
-        imgs.forEach(img => {
-            imgURLs.push(extractImgURL(img));
-        });
-    });
-    return imgURLs;
+function makeRoot() {
+    const root = document.createElement('div');
+    root.className = rootClassName;
+    document.body.appendChild(root);
+    return root;
 }
 
 //
@@ -223,28 +107,27 @@ function getImgURLs(specificAccount) {
 //
 
 const OreCanvas = (() => {
-    let canvas;
-    let ctx;
-    let wrapper;
-    function initialize(newCanvas, newWrapper) {
-        canvas = newCanvas;
+    let wrapper, canvas, ctx;
+    function initialize(root) {
+        wrapper = document.createElement('div');
+        wrapper.className = wrapperClassName;
+        canvas = document.createElement('canvas');
+        wrapper.appendChild(canvas);
+        root.appendChild(wrapper);
         ctx = canvas.getContext('2d');
-        wrapper = newWrapper;
-        trackTransforms(ctx);
-        ctx.save();
-        addDragAndZoom();
+        trackTransforms(ctx); // ctxを機能拡張
+        ctx.save(); // 初期位置・初期拡大縮小を保存
+        addDragAndZoom(); // ドラッグとズーム機能を追加
     }
 
-    let img;
-    let expand;
-    let drawFunc;
+    let img, expand, drawFunc;
     function setImg(newImg, expandImg) {
         canvas.width = wrapper.clientWidth;
         canvas.height = wrapper.clientHeight;
         img = newImg;
         expand = expandImg;
-        ctx.restore();
-        ctx.save();
+        ctx.restore(); // 初期位置・初期拡大縮小を復元
+        ctx.save(); // 初期位置・初期拡大縮小を保存
         if (!expand && (newImg.width < canvas.width) && (newImg.height < canvas.height)) {
             drawFunc = drawImageOriginal;
         } else {
@@ -298,13 +181,11 @@ const OreCanvas = (() => {
         let lastX = canvas.width / 2;
         let lastY = canvas.height / 2;
         let dragStart = null;
-        let dragged = false;
         canvas.addEventListener('mousedown', e => {
             if (e.button === 0) { // 左クリック
                 lastX = e.offsetX;
                 lastY = e.offsetY;
                 dragStart = ctx.transformedPoint(lastX, lastY);
-                dragged = false;
             } else if (e.button === 1) { // 中クリック
                 e.preventDefault();
                 setImg(img, expand);
@@ -318,7 +199,6 @@ const OreCanvas = (() => {
                 ctx.translate(pt.x - dragStart.x, pt.y - dragStart.y);
                 redraw();
             }
-            dragged = true;
         });
         canvas.addEventListener('mouseup', () => {
             dragStart = null;
@@ -375,90 +255,224 @@ const OreCanvas = (() => {
 // OreViewer
 //
 
-const OreViewer = new (class {
-    constructor(swapLeftRight, expandImg) {
-        const [left, right] = (swapLeftRight ? [1, -1] : [-1, 1]); // 1が次の画像 -1が前の画像
-        this.expandImg = expandImg;
-        // root とイベントの設定
-        this.root = document.createElement('div');
-        this.root.className = rootClassName;
+const OreViewer = ((expandImg, swapLeftRight) => {
+    const [left, right] = (swapLeftRight ? [1, -1] : [-1, 1]); // 1が次の画像 -1が前の画像
+    let root;
+    function initialize(rootEle) {
+        // root の設定
+        root = rootEle;
+        hide();
         let isSimpleClick = true;
-        this.root.onmousedown = () => {
+        root.onmousedown = () => {
             isSimpleClick = true;
         };
-        this.root.onmousemove = () => {
+        root.onmousemove = () => {
             isSimpleClick = false;
         };
-        this.root.onmouseup = e => {
+        root.onmouseup = e => {
             if (isSimpleClick && (e.button === 0)) {
                 // クリックが画面の左側か右側か
-                const diff = (e.clientX < (this.root.clientWidth / 2) ? left : right);
-                this.addIndex(diff);
+                const diff = (e.clientX < (root.clientWidth / 2) ? left : right);
+                addIndex(diff);
             }
         };
+        // キーボードイベントの登録
         document.addEventListener('keydown', e => {
-            if (!this.isVisible()) return;
+            if (!isVisible()) return; // OreViewerが不可視なら無視
             switch (e.key) {
                 case 'ArrowLeft':
-                    this.addIndex(left);
+                    addIndex(left);
                     break;
                 case 'ArrowRight':
-                    this.addIndex(right);
+                    addIndex(right);
                     break;
                 case 'f':
                 case 'F':
-                    this.expandImg = !this.expandImg;
-                    this.setImg();
+                    expandImg = !expandImg;
+                    setImg();
                     break;
                 case 'Escape':
-                    this.hide();
+                    hide();
                     break;
             }
         });
-        // OreCanvasの設定
-        const wrapper = document.createElement('div');
-        wrapper.className = wrapperClassName;
-        this.root.appendChild(wrapper);
-        const canvas = document.createElement('canvas');
-        wrapper.appendChild(canvas);
-        OreCanvas.initialize(canvas, wrapper);
-        this.emptyImg = new Image;
-        // DOMに追加
-        this.hide(); // OreCanvas設定前に hide() するとOreCanvasの設定ができなくなる
-        document.body.appendChild(this.root);
     }
-    start(urls, index = 0) {
+    let index, imgs;
+    const emptyImg = new Image;
+    function start(urls, newindex = 0) {
         if (urls.length === 0) return;
-        this.index = index;
-        this.imgs = urls.map(url => {
+        index = newindex;
+        imgs = urls.map(url => {
             const img = document.createElement('img');
             img.src = url;
             return img;
         });
-        this.setImg();
-        this.show();
+        setImg();
+        show();
     }
-    addIndex(diff) {
-        this.index += diff;
-        if ((this.index < 0) || (this.index >= this.imgs.length)) {
-            this.hide();
+    function addIndex(diff) {
+        index += diff;
+        if ((index < 0) || (index >= imgs.length)) {
+            hide();
         } else {
-            this.setImg();
+            setImg();
         }
     }
-    setImg() {
-        const img = this.imgs[this.index];
-        if (img.complete) OreCanvas.setImg(img, this.expandImg);
-        img.onload = () => OreCanvas.setImg(img, this.expandImg);
+    function setImg() {
+        const img = imgs[index];
+        if (img.complete) OreCanvas.setImg(img, expandImg);
+        img.onload = () => OreCanvas.setImg(img, expandImg);
     }
-    isVisible() {
-        return (this.root.style.display === '');
+    function isVisible() {
+        return (root.style.display === '');
     }
-    show() {
-        this.root.style.display = '';
+    function show() {
+        root.style.display = '';
     }
-    hide() {
-        this.root.style.display = 'none';
-        OreCanvas.setImg(this.emptyImg); // show() したときに前のIMGが表示されうるので空IMGを登録
+    function hide() {
+        root.style.display = 'none';
+        OreCanvas.setImg(emptyImg); // show() したときに前のIMGが表示されうるので空IMGを登録
     }
-})(!!options.swapLeftRight, !!options.expandImg);
+    return { initialize, start, isVisible };
+})(!!options.expandImg, !!options.swapLeftRight);
+
+
+//
+// addClickEventListener
+//
+
+function addClickEventListener(doc) {
+    doc.addEventListener('click', e => {
+        const ele = e.target;
+        if (isNonTargetElement(ele)) return;
+        if (e.button === 0) { // 左クリック
+            e.preventDefault();
+            const art = ele.closest('article');
+            if (!art) return;
+            const quoteDiv = ele.closest('[role="blockquote"]');
+            const imgs = (quoteDiv ? extractQuotedImgs(quoteDiv) : extractImgs(art));
+            const index = imgs.indexOf(ele);
+            const imgURLs = imgs.map(extractImgURL);
+            OreViewer.start(imgURLs, index);
+        } else if (e.button === 1) { // 中クリック
+            e.preventDefault();
+            const imgURL = extractImgURL(ele);
+            window.open(imgURL);
+        }
+    }, true);
+    if (window.chrome) {
+        doc.addEventListener('auxclick', e => {
+            if (e.button !== 1) return;
+            const ele = e.target;
+            if (isNonTargetElement(ele)) return;
+            e.preventDefault();
+            const imgURL = extractImgURL(ele);
+            window.open(imgURL);
+        }, true);
+    }
+}
+
+function isNonTargetElement(ele) {
+    // IMGではない || タイムライン内ではない（＝多分個人ページ右上のメディア）
+    // || 画像ツイートのIMGではない(＝多分画像リンク付きツイート or ヘッダー画像)
+    return ((ele.nodeName !== 'IMG') ||
+            (!ele.closest('[data-testid="primaryColumn"]')) ||
+            (ele.alt !== '画像'));
+}
+
+function extractImgs(art) {
+    const imgs = Array.from(art.querySelectorAll('img[alt="画像"]'));
+    // 引用部分のIMGを後ろから削除
+    for (let i = imgs.length - 1; i >= 0; i--) {
+        if (imgs[i].closest('[role="blockquote"]')) imgs.splice(i, 1);
+    }
+    // 公式では 0 1                          |0|1|
+    //          2 3 の順に表示されるが構造が |2|3| なので並び替え
+    if (imgs.length === 4) [imgs[1], imgs[2]] = [imgs[2], imgs[1]];
+    return imgs;
+}
+
+function extractQuotedImgs(div) {
+    const imgs = Array.from(div.querySelectorAll('img[alt="画像"]'));
+    if (imgs.length === 4) [imgs[1], imgs[2]] = [imgs[2], imgs[1]];
+    return imgs;
+}
+
+function extractImgURL(img) {
+    const url = new URL(img.src);
+    url.searchParams.delete('name');
+    return url.toString();
+}
+
+//
+// addViewButton
+//
+
+function addViewButton() {
+    const btn = document.createElement('button');
+    btn.innerText = 'View';
+    btn.onclick = () => {
+        if (OreViewer.isVisible()) return; // 連打対策
+        OreViewer.start(getImgURLs(true));
+    }
+    btn.oncontextmenu = e => {
+        e.preventDefault();
+        OreViewer.start(getImgURLs(false));
+        return false;
+    }
+    const intervalID = setInterval(() => {
+        const ele = document.querySelector('[aria-label="メインメニュー"]');
+        if (ele) {
+            ele.appendChild(btn);
+            clearInterval(intervalID);
+        }
+    }, 1000);
+}
+
+function getImgURLs(specificAccount) {
+    const tweetDivs = Array.from(document.querySelectorAll(
+        '[data-testid="primaryColumn"] [aria-label^="タイムライン:"] > div > div > div'
+    ));
+    let targetDivs = [];
+    // 個別ツイートの有無
+    if (location.pathname.includes('/status/')) {
+        // 個別ツイートなら ツイートソースラベル が表示されている（はず）
+        const startIndex = tweetDivs.findIndex(div => !!div.querySelector(
+            'a[href="https://help.twitter.com/using-twitter/how-to-tweet#source-labels"]'
+        ));
+        if (startIndex === -1) {
+            alert('個別ツイートが見つかりません。' +
+                  '個別ツイートが読み込まれる所までスクロールしてください。' +
+                  '意図が分かる方はブラウザの表示を縮小してもいいです。');
+            return [];
+        }
+        for (let i = startIndex; i < tweetDivs.length; i++) targetDivs.push(tweetDivs[i]);
+        if (specificAccount) {
+            const getName = div => {
+                // [data-testid="tweet"] がないと ○○さんがリツイート のAにつかまる
+                const a = div.querySelector('[data-testid="tweet"] a');
+                if (!a) return; // 個別ツイートの次のDIVは空
+                return a.getAttribute('href');
+            };
+            const targetAccountName = getName(tweetDivs[startIndex]);
+            // 対象アカウントではないDIVを後ろから削除
+            for (let i = targetDivs.length - 1; i >= 0; i--) {
+                if (getName(targetDivs[i]) !== targetAccountName) targetDivs.splice(i, 1);
+            }
+        }
+    } else {
+        targetDivs = tweetDivs;
+    }
+    const imgURLs = [];
+    targetDivs.forEach(div => {
+        const art = div.querySelector(':scope > div > article');
+        if (!art) return;
+        const imgs = extractImgs(art);
+        imgs.forEach(img => {
+            imgURLs.push(extractImgURL(img));
+        });
+    });
+    return imgURLs;
+}
+
+init();
