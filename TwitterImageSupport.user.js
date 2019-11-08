@@ -3,7 +3,7 @@
 // @namespace   https://github.com/horyu
 // @description タイムライン（TL）の画像を左クリックすると専用のViewerで画像を開き、中クリックすると新規タブで画像だけを開きます。メインバーのViewボタンでTLの画像ツイートをまとめてViewerで開きます。詳細はスクリプト内部のコメントに記述してあります。
 // @include     https://twitter.com/*
-// @version     0.2.0
+// @version     0.2.1
 // @run-at      document-start
 // @noframes
 // ==/UserScript==
@@ -262,16 +262,16 @@ const OreViewer = ((expandImg, swapLeftRight) => {
         // root の設定
         root = rootEle;
         hide();
-        let isSimpleClick = true;
-        root.onmousedown = () => {
-            isSimpleClick = true;
+        let isSimpleClick = false;
+        root.onmousedown = e => {
+            if (e.button === 0) isSimpleClick = true;
         };
         root.onmousemove = () => {
             isSimpleClick = false;
         };
         root.onmouseup = e => {
-            if (isSimpleClick && (e.button === 0)) {
-                // クリックが画面の左側か右側か
+            if (isSimpleClick) {
+                // 左クリックが画面の左側か右側か
                 const diff = (e.clientX < (root.clientWidth / 2) ? left : right);
                 addIndex(diff);
             }
@@ -301,6 +301,7 @@ const OreViewer = ((expandImg, swapLeftRight) => {
     const emptyImg = new Image;
     function start(urls, newindex = 0) {
         if (urls.length === 0) return;
+        show();
         index = newindex;
         imgs = urls.map(url => {
             const img = document.createElement('img');
@@ -308,7 +309,6 @@ const OreViewer = ((expandImg, swapLeftRight) => {
             return img;
         });
         setImg();
-        show();
     }
     function addIndex(diff) {
         index += diff;
@@ -335,7 +335,6 @@ const OreViewer = ((expandImg, swapLeftRight) => {
     }
     return { initialize, start, isVisible };
 })(!!options.expandImg, !!options.swapLeftRight);
-
 
 //
 // addClickEventListener
@@ -433,8 +432,7 @@ function getImgURLs(specificAccount) {
     const tweetDivs = Array.from(document.querySelectorAll(
         '[data-testid="primaryColumn"] [aria-label^="タイムライン:"] > div > div > div'
     ));
-    let targetDivs = [];
-    // 個別ツイートの有無
+    // 個別ツイートなら targetDivs を加工
     if (location.pathname.includes('/status/')) {
         // 個別ツイートなら ツイートソースラベル が表示されている（はず）
         const startIndex = tweetDivs.findIndex(div => !!div.querySelector(
@@ -446,7 +444,7 @@ function getImgURLs(specificAccount) {
                   '意図が分かる方はブラウザの表示を縮小してもいいです。');
             return [];
         }
-        for (let i = startIndex; i < tweetDivs.length; i++) targetDivs.push(tweetDivs[i]);
+        tweetDivs.splice(0, startIndex); // 個別ツイートより前のDIVを全削除
         if (specificAccount) {
             const getName = div => {
                 // [data-testid="tweet"] がないと ○○さんがリツイート のAにつかまる
@@ -454,17 +452,15 @@ function getImgURLs(specificAccount) {
                 if (!a) return; // 個別ツイートの次のDIVは空
                 return a.getAttribute('href');
             };
-            const targetAccountName = getName(tweetDivs[startIndex]);
+            const targetAccountName = getName(tweetDivs[0]);
             // 対象アカウントではないDIVを後ろから削除
-            for (let i = targetDivs.length - 1; i >= 0; i--) {
-                if (getName(targetDivs[i]) !== targetAccountName) targetDivs.splice(i, 1);
+            for (let i = tweetDivs.length - 1; i >= 0; i--) {
+                if (getName(tweetDivs[i]) !== targetAccountName) tweetDivs.splice(i, 1);
             }
         }
-    } else {
-        targetDivs = tweetDivs;
     }
     const imgURLs = [];
-    targetDivs.forEach(div => {
+    tweetDivs.forEach(div => {
         const art = div.querySelector(':scope > div > article');
         if (!art) return;
         const imgs = extractImgs(art);
