@@ -3,7 +3,7 @@
 // @namespace   https://github.com/horyu
 // @description タイムライン（TL）の画像を左クリックすると専用のViewerで画像を開き、中クリックすると新規タブで画像だけを開きます。メインバーのViewボタンでTLの画像ツイートをまとめてViewerで開きます。詳細はスクリプト内部のコメントに記述してあります。
 // @include     https://twitter.com/*
-// @version     0.2.1
+// @version     0.2.2
 // @run-at      document-start
 // @noframes
 // ==/UserScript==
@@ -349,7 +349,7 @@ function addClickEventListener(doc) {
             const art = ele.closest('article');
             if (!art) return;
             const quoteDiv = ele.closest('[role="blockquote"]');
-            const imgs = (quoteDiv ? extractQuotedImgs(quoteDiv) : extractImgs(art));
+            const imgs = extractImgs(quoteDiv || art, !!quoteDiv);
             const index = imgs.indexOf(ele);
             const imgURLs = imgs.map(extractImgURL);
             OreViewer.start(imgURLs, index);
@@ -376,23 +376,18 @@ function isNonTargetElement(ele) {
     // || 画像ツイートのIMGではない(＝多分画像リンク付きツイート or ヘッダー画像)
     return ((ele.nodeName !== 'IMG') ||
             (!ele.closest('[data-testid="primaryColumn"]')) ||
-            (ele.alt !== '画像'));
+            (!ele.src.startsWith('https://pbs.twimg.com/media')));
 }
 
-function extractImgs(art) {
-    const imgs = Array.from(art.querySelectorAll('img[alt="画像"]'));
-    // 引用部分のIMGを後ろから削除
-    for (let i = imgs.length - 1; i >= 0; i--) {
-        if (imgs[i].closest('[role="blockquote"]')) imgs.splice(i, 1);
+function extractImgs(ele, isQuote) {
+    const imgs = Array.from(ele.querySelectorAll('img[src^="https://pbs.twimg.com/media"]'));
+    if (!isQuote) { // 引用部分のIMGを後ろから削除
+        for (let i = imgs.length - 1; i >= 0; i--) {
+            if (imgs[i].closest('[role="blockquote"]')) imgs.splice(i, 1);
+        }
     }
     // 公式では 0 1                          |0|1|
     //          2 3 の順に表示されるが構造が |2|3| なので並び替え
-    if (imgs.length === 4) [imgs[1], imgs[2]] = [imgs[2], imgs[1]];
-    return imgs;
-}
-
-function extractQuotedImgs(div) {
-    const imgs = Array.from(div.querySelectorAll('img[alt="画像"]'));
     if (imgs.length === 4) [imgs[1], imgs[2]] = [imgs[2], imgs[1]];
     return imgs;
 }
