@@ -3,7 +3,7 @@
 // @namespace   https://github.com/horyu
 // @description タイムライン（TL）の画像を左クリックすると専用のViewerで画像を開き、中クリックすると新規タブで画像だけを開きます。メインバーのViewボタンでTLの画像ツイートをまとめてViewerで開きます。詳細はスクリプト内部のコメントに記述してあります。
 // @include     https://twitter.com/*
-// @version     0.2.2
+// @version     0.2.3
 // @run-at      document-start
 // @noframes
 // ==/UserScript==
@@ -247,7 +247,6 @@ const OreCanvas = (() => {
         ctx.drawImage(img, 0, 0, img.width, img.height,
                       centerShiftX, centerShiftY, img.width * ratio, img.height * ratio);
     }
-
     return { initialize, setImg };
 })();
 
@@ -298,7 +297,6 @@ const OreViewer = ((expandImg, swapLeftRight) => {
         });
     }
     let index, imgs;
-    const emptyImg = new Image;
     function start(urls, newindex = 0) {
         if (urls.length === 0) return;
         show();
@@ -329,6 +327,7 @@ const OreViewer = ((expandImg, swapLeftRight) => {
     function show() {
         root.style.display = '';
     }
+    const emptyImg = new Image;
     function hide() {
         root.style.display = 'none';
         OreCanvas.setImg(emptyImg); // show() したときに前のIMGが表示されうるので空IMGを登録
@@ -343,40 +342,51 @@ const OreViewer = ((expandImg, swapLeftRight) => {
 function addClickEventListener(doc) {
     doc.addEventListener('click', e => {
         const ele = e.target;
-        if (isNonTargetElement(ele)) return;
+        const clickedImgURL = extractClickedImgURL(ele);
+        if (!clickedImgURL) return;
         if (e.button === 0) { // 左クリック
-            e.preventDefault();
             const art = ele.closest('article');
             if (!art) return;
+            e.preventDefault();
             const quoteDiv = ele.closest('[role="blockquote"]');
             const imgs = extractImgs(quoteDiv || art, !!quoteDiv);
-            const index = imgs.indexOf(ele);
             const imgURLs = imgs.map(extractImgURL);
+            const index = imgURLs.indexOf(clickedImgURL);
             OreViewer.start(imgURLs, index);
         } else if (e.button === 1) { // 中クリック
             e.preventDefault();
-            const imgURL = extractImgURL(ele);
-            window.open(imgURL);
+            window.open(clickedImgURL);
         }
     }, true);
     if (window.chrome) {
+        // スマホ版左スワイプによるカメラ画像ツイートは拾わない
+        // [原因] 該当DIV要素上の中クリックはオートスクロールになる → clickとauxclickが不発
+        // [理由] そもそも該当ツイートが少なくてmousedownとmouseupで書くほどの価値はない
         doc.addEventListener('auxclick', e => {
             if (e.button !== 1) return;
             const ele = e.target;
-            if (isNonTargetElement(ele)) return;
+            const clickedImgURL = extractClickedImgURL(ele);
+            if (!clickedImgURL) return;
             e.preventDefault();
-            const imgURL = extractImgURL(ele);
-            window.open(imgURL);
+            window.open(clickedImgURL);
         }, true);
     }
 }
 
-function isNonTargetElement(ele) {
-    // IMGではない || タイムライン内ではない（＝多分個人ページ右上のメディア）
-    // || 画像ツイートのIMGではない(＝多分画像リンク付きツイート or ヘッダー画像)
-    return ((ele.nodeName !== 'IMG') ||
-            (!ele.closest('[data-testid="primaryColumn"]')) ||
-            (!ele.src.startsWith('https://pbs.twimg.com/media')));
+// クリック対象が(対象IMG || 対象IMGを含む何か) ? extractImgURL(img) : undefined
+function extractClickedImgURL(ele) {
+    if (ele.nodeName === 'IMG') {
+        // タイムライン内（!= 個人ページ右上のメディア)
+        // && 画像ツイートのIMG(!= 多分画像リンク付きツイート or ヘッダー画像)
+        if ((ele.closest('[data-testid="primaryColumn"]')) &&
+            (ele.src.startsWith('https://pbs.twimg.com/media'))) {
+            return extractImgURL(ele);
+        }
+    } else { // スマホ版左スワイプによるカメラ画像ツイートならIMGを拾う
+        if (!ele.closest('[role="link"]')) return;
+        const img = ele.querySelector('img');
+        if (img) return extractClickedImgURL(img);
+    }
 }
 
 function extractImgs(ele, isQuote) {
@@ -441,16 +451,12 @@ function getImgURLs(specificAccount) {
         }
         tweetDivs.splice(0, startIndex); // 個別ツイートより前のDIVを全削除
         if (specificAccount) {
-            const getName = div => {
-                // [data-testid="tweet"] がないと ○○さんがリツイート のAにつかまる
-                const a = div.querySelector('[data-testid="tweet"] a');
-                if (!a) return; // 個別ツイートの次のDIVは空
-                return a.getAttribute('href');
-            };
-            const targetAccountName = getName(tweetDivs[0]);
+            const targetAccountName = extractAccountName(tweetDivs[0]);
             // 対象アカウントではないDIVを後ろから削除
             for (let i = tweetDivs.length - 1; i >= 0; i--) {
-                if (getName(tweetDivs[i]) !== targetAccountName) tweetDivs.splice(i, 1);
+                if (extractAccountName(tweetDivs[i]) !== targetAccountName) {
+                    tweetDivs.splice(i, 1);
+                }
             }
         }
     }
@@ -464,6 +470,13 @@ function getImgURLs(specificAccount) {
         });
     });
     return imgURLs;
+}
+
+function extractAccountName(div) {
+    // [data-testid="tweet"] がないと ○○さんがリツイート のAにつかまる
+    const a = div.querySelector('[data-testid="tweet"] a');
+    if (!a) return; // 個別ツイートの次のDIVは空
+    return a.getAttribute('href');
 }
 
 init();
