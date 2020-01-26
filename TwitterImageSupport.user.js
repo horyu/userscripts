@@ -1,9 +1,10 @@
 // ==UserScript==
 // @name        Twitter Image Suport
-// @namespace   https://github.com/horyu
+// @author      horyu (https://github.com/horyu/)
 // @description タイムライン（TL）の画像を左クリックすると専用のViewerで画像を開き、中クリックすると新規タブで画像だけを開きます。メインバーのViewボタンでTLの画像ツイートをまとめてViewerで開きます。詳細はスクリプト内部のコメントに記述してあります。
+// @namespace   https://github.com/horyu
 // @include     https://twitter.com/*
-// @version     0.2.3
+// @version     0.2.4
 // @run-at      document-start
 // @noframes
 // ==/UserScript==
@@ -16,10 +17,10 @@
   中クリック：画像のみを新規タブで開く
 [通常のTLでメインバーのViewボタン]
   左クリック：TLの画像でViewerを起動
-  右クリック：TLの画像でViewerを起動
+  右クリック：TLの画像でViewerを起動（左クリックと同じ）
   中クリック：何もしない
 [個別のツイートを開いたTLでメインバーのViewボタン]
-  左クリック：個別ツイートのアカウントに絞って、個別ツイート以降の画像でViewerを起動
+  左クリック：個別ツイートのアカウントに限定して、個別ツイート以降の画像でViewerを起動
   右クリック：個別ツイート以降の画像でViewerを起動
   中クリック：何もしない
 
@@ -30,19 +31,19 @@ Viewerの終了：EscキーでViewerを終了
 画像の拡大縮小：マウスホイールで画像を拡大縮小
 　　　　　　　　※拡大縮小しすぎると表示が崩れる可能性あり
 画像の移動：画像をドラッグで移動
-画像のリセット：ホイールクリックで画像の拡大縮小と位置をリセット
+画像のリセット：中クリックで画像の拡大縮小と位置をリセット
 拡大表示の切替：fキーでViewerで開く画像を拡大表示に する・しない を切替
 　　　　　　　　※ 元画像が大きい場合は大きいまま
 
 ■オプション（書き換える所はこの行から9～11行下）
-swapLeftRight：Viewerの左側クリック・左キーと右側クリック・右キーで表示する画像を逆に
+swapLeftRight：Viewerの左側クリック・左キーと右側クリック・右キーで表示する画像の順番を逆に
              　する（true）・しない（false）
-expandImg：Viewerで画像を開く時、画像を拡大表示に標準で する（true）・しない（false）
+expandImg：Viewerで画像を開く時、標準で拡大表示に する（true）・しない（false）
 backgroundAlpha：Viewerの黒背景の透明度 0.0（透明）～1.0（不透明）
 */
 //
 // オプション ここから
-const options = {
+const OPTIONS = {
     swapLeftRight   : false,
     expandImg       : true,
     backgroundAlpha : 0.5,
@@ -52,43 +53,12 @@ const options = {
 
 function init() {
     document.addEventListener('DOMContentLoaded', () => {
-        setStyle();
         const root = makeRoot();
         OreCanvas.initialize(root);
         OreViewer.initialize(root);
-        addClickEventListener(document);
+        addClickEventListener();
         addViewButton();
     });
-}
-
-//
-// setStyle
-//
-
-const cssPrefix = 'horyususerscript-tis';
-const rootClassName = `${cssPrefix}-root`;
-const wrapperClassName = `${cssPrefix}-wrapper`;
-
-function setStyle() {
-    const style = document.createElement('style');
-    style.textContent = `
-.${rootClassName} {
-z-index: 9999;
-position: fixed;
-top: 0;
-bottom: 0;
-left: 0;
-right: 0;
-background-color: rgba(0, 0, 0, ${parseFloat(options.backgroundAlpha) || 0.5});
-padding: 5px;
-}
-
-.${wrapperClassName} {
-width: 100%;
-height: 100%;
-}
-`;
-    document.head.appendChild(style);
 }
 
 //
@@ -97,7 +67,13 @@ height: 100%;
 
 function makeRoot() {
     const root = document.createElement('div');
-    root.className = rootClassName;
+    root.style.cssText = `
+z-index: 9999;
+position: fixed;
+top: 0; bottom: 0; left: 0; right: 0;
+background-color: rgba(0, 0, 0, ${parseFloat(OPTIONS.backgroundAlpha) || 0.5});
+padding: 5px;
+`;
     document.body.appendChild(root);
     return root;
 }
@@ -110,7 +86,7 @@ const OreCanvas = (() => {
     let wrapper, canvas, ctx;
     function initialize(root) {
         wrapper = document.createElement('div');
-        wrapper.className = wrapperClassName;
+        wrapper.style.cssText = `width: 100%; height: 100%;`;
         canvas = document.createElement('canvas');
         wrapper.appendChild(canvas);
         root.appendChild(wrapper);
@@ -221,7 +197,7 @@ const OreCanvas = (() => {
             return false;
         };
         canvas.addEventListener('DOMMouseScroll', handleScroll); // Firefox
-        canvas.addEventListener('mousewheel', handleScroll); // Chrome
+        if (window.chrome) canvas.addEventListener('mousewheel', handleScroll); // Chrome
     }
 
     function redraw() {
@@ -263,7 +239,7 @@ const OreViewer = ((expandImg, swapLeftRight) => {
         hide();
         let isSimpleClick = false;
         root.onmousedown = e => {
-            if (e.button === 0) isSimpleClick = true;
+            isSimpleClick = (e.button === 0);
         };
         root.onmousemove = () => {
             isSimpleClick = false;
@@ -333,14 +309,14 @@ const OreViewer = ((expandImg, swapLeftRight) => {
         OreCanvas.setImg(emptyImg); // show() したときに前のIMGが表示されうるので空IMGを登録
     }
     return { initialize, start, isVisible };
-})(!!options.expandImg, !!options.swapLeftRight);
+})(!!OPTIONS.expandImg, !!OPTIONS.swapLeftRight);
 
 //
 // addClickEventListener
 //
 
-function addClickEventListener(doc) {
-    doc.addEventListener('click', e => {
+function addClickEventListener() {
+    document.addEventListener('click', e => {
         const ele = e.target;
         const clickedImgURL = extractClickedImgURL(ele);
         if (!clickedImgURL) return;
@@ -362,7 +338,7 @@ function addClickEventListener(doc) {
         // スマホ版左スワイプによるカメラ画像ツイートは拾わない
         // [原因] 該当DIV要素上の中クリックはオートスクロールになる → clickとauxclickが不発
         // [理由] そもそも該当ツイートが少なくてmousedownとmouseupで書くほどの価値はない
-        doc.addEventListener('auxclick', e => {
+        document.addEventListener('auxclick', e => {
             if (e.button !== 1) return;
             const ele = e.target;
             const clickedImgURL = extractClickedImgURL(ele);
