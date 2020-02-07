@@ -39,6 +39,15 @@ __NicoManga ScrollButton__
 
 ![ScreenShot](https://raw.githubusercontent.com/horyu/userscripts/master/imgs/NicoManga-ScrollButton.png)
 
+
+---
+
+__Always desktop NicoDic__
+
+<a href="Always-Desktop-NicoDic.user.js?raw=true">Install Link</a>
+
+モバイル版ニコニコ大百科をデスクトップ版にリダイレクトします。
+
 ---
 
 __Twitter Image Support__
