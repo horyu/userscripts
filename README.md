@@ -102,21 +102,3 @@ expandImg：Viewerで画像を開く時、標準で拡大表示に する（true
 backgroundAlpha：Viewerの黒背景の透明度 0.0（透明）～1.0（不透明）
 ```
 </details>
-
----
-
-__Twitter Image Asist for React version__
-
-<a href="TwitterImageAssist.user.js?raw=true">Install Link</a>
-
-React版のTwitterで画像ツイートにopenボタン（Ctrlキー・\[左右中\]クリックの組み合わせあり）とかを追加します。基本は左クリックor中クリック。
-
----
-
-__Twitter Image Viewer__
-
-<a href="TwitterImageViewer.user.js?raw=true">Install Link</a>
-
-左側のメインメニューに追加された「View」ボタンで現在のタイムラインから取得できた画像をビューアーで開きます。[画像の右側クリック/右キー入力]で次の画像、[画像の左側クリック/左キー入力]で前の画像、Escでビューアーを終了します。マウスホイールで画像の拡大/縮小ができます。デフォルトでは「Twitter Image Asist for React version」が必要となります。
-
-※ Twitter Image Asist for React versionを入れないと動きませんが、 `getImgURLs()` を対象とする画像URLの配列を返すように変更すれば、このスクリプト単体で動きます。
