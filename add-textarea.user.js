@@ -2,8 +2,8 @@
 // @name         add textarea
 // @namespace    https://github.com/horyu/
 // @description  文字数カウントにメモ用テキストエリアを追加
-// @include      https://phonypianist.sakura.ne.jp/convenienttool/strcount.html
-// @version      0.0.1
+// @match        https://phonypianist.sakura.ne.jp/convenienttool/strcount.html
+// @version      0.0.2
 // @run-at       document-end
 // @grant        none
 // ==/UserScript==

@@ -3,8 +3,8 @@
 // @author       horyu (https://github.com/horyu/)
 // @namespace    https://github.com/horyu
 // @description  モバイル版ニコニコ大百科をデスクトップ版にリダイレクト
-// @include      https://dic.nicovideo.jp/t/*
-// @version      0.1
+// @match        https://dic.nicovideo.jp/t/*
+// @version      0.2
 // @run-at       document-start
 // @grant        none
 // @noframes

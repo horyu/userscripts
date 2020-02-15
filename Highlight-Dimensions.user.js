@@ -3,8 +3,8 @@
 // @author       horyu (https://github.com/horyu/)
 // @namespace    https://github.com/horyu/
 // @description  PDFかOpenAccessのあるarticleを強調表示
-// @include      https://app.dimensions.ai/discover/publication*
-// @version      2020.1.28
+// @match        https://app.dimensions.ai/discover/publication*
+// @version      2020.2.15
 // @run-at       document-end
 // @grant        none
 // @noframes
