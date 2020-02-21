@@ -4,7 +4,7 @@
 // @description タイムライン（TL）の画像を左クリックすると専用のViewerで画像を開き、中クリックすると新規タブで画像だけを開きます。メインバーのViewボタンでTLの画像ツイートをまとめてViewerで開きます。詳細はスクリプト内部のコメントに記述してあります。
 // @namespace   https://github.com/horyu
 // @match       https://twitter.com/*
-// @version     0.3.0
+// @version     0.3.1
 // @run-at      document-start
 // @noframes
 // ==/UserScript==
@@ -393,12 +393,13 @@ function addViewButton() {
     btn.innerText = 'View';
     btn.onclick = () => {
         if (OreViewer.isVisible()) return; // 連打対策
-        const specificAccount = location.pathname.includes('/status/');
-        OreViewer.start(getImgURLs(specificAccount, false));
+        const tweetDivs = getTweetDivs(location.pathname.includes('/status/'));
+        OreViewer.start(extractImgURLs(tweetDivs, false));
     }
     btn.oncontextmenu = e => {
         e.preventDefault();
-        OreViewer.start(getImgURLs(false, true));
+        const tweetDivs = getTweetDivs(false);
+        OreViewer.start(extractImgURLs(tweetDivs, true));
         return false;
     }
     const intervalID = setInterval(() => {
@@ -410,11 +411,10 @@ function addViewButton() {
     }, 1000);
 }
 
-function getImgURLs(specificAccount, onlyFirst) {
+function getTweetDivs(specificAccount) {
     const tweetDivs = Array.from(document.querySelectorAll(
         '[data-testid="primaryColumn"] [aria-label^="タイムライン:"] > div > div > div'
     ));
-    // 個別ツイートなら targetDivs を加工
     if (specificAccount) {
         // 個別ツイートなら ツイートソースラベル が表示されている（はず）
         const startIndex = tweetDivs.findIndex(div => !!div.querySelector(
@@ -435,22 +435,7 @@ function getImgURLs(specificAccount, onlyFirst) {
             }
         }
     }
-    const imgURLs = [];
-    tweetDivs.forEach(div => {
-        if (onlyFirst && div.dataset.tisViewed) return;
-        const art = div.querySelector(':scope > div > article');
-        if (!art) return;
-        const imgs = extractImgs(art);
-        if (imgs.length > 0) {
-            // IMGを抽出できたDIVは seagreen で縁取る & data-tisViewedを登録
-            div.style.cssText = `border-style: solid; border-color: rgb(46, 139, 87, .5);`;
-            div.dataset.tisViewed = true;
-            imgs.forEach(img => {
-                imgURLs.push(extractImgURL(img));
-            });
-        }
-    });
-    return imgURLs;
+    return tweetDivs;
 }
 
 function extractAccountName(div) {
@@ -458,6 +443,25 @@ function extractAccountName(div) {
     const a = div.querySelector('[data-testid="tweet"] a');
     if (!a) return; // 個別ツイートの次のDIVは空
     return a.getAttribute('href');
+}
+
+function extractImgURLs(tweetDivs, onlyFirst) {
+    const imgURLs = [];
+    tweetDivs.forEach(div => {
+        if (onlyFirst && div.dataset.tisViewed) return;
+        div.dataset.tisViewed = true;
+        const art = div.querySelector(':scope > div > article');
+        if (!art) return;
+        const imgs = extractImgs(art);
+        if (imgs.length > 0) {
+            // IMGを抽出できたDIVは seagreen で縁取る
+            div.style.cssText = `border-style: solid; border-color: rgb(46, 139, 87, .5);`;
+            imgs.forEach(img => {
+                imgURLs.push(extractImgURL(img));
+            });
+        }
+    });
+    return imgURLs;
 }
 
 init();
