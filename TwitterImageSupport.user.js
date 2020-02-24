@@ -4,7 +4,7 @@
 // @description タイムライン（TL）の画像を左クリックすると専用のViewerで画像を開き、中クリックすると新規タブで画像だけを開きます。メインバーのViewボタンでTLの画像ツイートをまとめてViewerで開きます。詳細はスクリプト内部のコメントに記述してあります。
 // @namespace   https://github.com/horyu
 // @match       https://twitter.com/*
-// @version     0.3.2
+// @version     0.3.3
 // @run-at      document-start
 // @noframes
 // ==/UserScript==
@@ -239,7 +239,7 @@ const OreViewer = ((expandImg, swapLeftRight) => {
         hide();
         let isSimpleClick = false;
         root.onmousedown = e => {
-            isSimpleClick = (e.button === 0);
+            isSimpleClick = (e.button === 0); // 左クリック
         };
         root.onmousemove = () => {
             isSimpleClick = false;
@@ -366,12 +366,9 @@ function extractClickedImgURL(ele) {
 }
 
 function extractImgs(ele, isQuote) {
-    const imgs = Array.from(ele.querySelectorAll('img[src^="https://pbs.twimg.com/media"]'));
-    if (!isQuote) { // 引用部分のIMGを後ろから削除
-        for (let i = imgs.length - 1; i >= 0; i--) {
-            if (imgs[i].closest('[role="blockquote"]')) imgs.splice(i, 1);
-        }
-    }
+    let imgs = Array.from(ele.querySelectorAll('img[src^="https://pbs.twimg.com/media"]'));
+    // クリック対象が引用部分ではないなら、引用部分のIMGを削除
+    if (!isQuote) imgs = imgs.filter(img => !img.closest('[role="blockquote"]'));
     // 公式では 0 1                          |0|1|
     //          2 3 の順に表示されるが構造が |2|3| なので並び替え
     if (imgs.length === 4) [imgs[1], imgs[2]] = [imgs[2], imgs[1]];
@@ -393,13 +390,16 @@ function addViewButton() {
     btn.innerText = 'View';
     btn.onclick = () => {
         if (OreViewer.isVisible()) return; // 連打対策
-        const tweetDivs = getTweetDivs(location.pathname.includes('/status/'));
-        OreViewer.start(extractImgURLs(tweetDivs, false));
+        let tweetDivs = getTweetDivs();
+        // 個別ツイートTLなら、そのアカウントのツイートに限定する
+        if (location.pathname.includes('/status/')) tweetDivs = specifyAccount(tweetDivs);
+        OreViewer.start(extractImgURLs(tweetDivs));
     }
     btn.oncontextmenu = e => {
         e.preventDefault();
-        const tweetDivs = getTweetDivs(false);
-        OreViewer.start(extractImgURLs(tweetDivs, true));
+        // 初めて見るツイートに限定する
+        const tweetDivs = getTweetDivs().filter(div => !div.dataset.tisViewed);
+        OreViewer.start(extractImgURLs(tweetDivs));
         return false;
     }
     const intervalID = setInterval(() => {
@@ -411,31 +411,26 @@ function addViewButton() {
     }, 1000);
 }
 
-function getTweetDivs(specificAccount) {
-    const tweetDivs = Array.from(document.querySelectorAll(
+function getTweetDivs() {
+    return Array.from(document.querySelectorAll(
         '[data-testid="primaryColumn"] [aria-label^="タイムライン:"] > div > div > div'
     ));
-    if (specificAccount) {
-        // 個別ツイートなら ツイートソースラベル が表示されている（はず）
-        const startIndex = tweetDivs.findIndex(div => !!div.querySelector(
-            'a[href="https://help.twitter.com/using-twitter/how-to-tweet#source-labels"]'
-        ));
-        if (startIndex === -1) {
-            alert('個別ツイートが見つかりません。' +
-                  '個別ツイートが読み込まれる所までスクロールしてください。' +
-                  '意図が分かる方はブラウザの表示を縮小してもいいです。');
-            return [];
-        }
-        tweetDivs.splice(0, startIndex); // 個別ツイートより前のDIVを全削除
-        const targetAccountName = extractAccountName(tweetDivs[0]);
-        // 対象アカウントではないDIVを後ろから削除
-        for (let i = tweetDivs.length - 1; i >= 0; i--) {
-            if (extractAccountName(tweetDivs[i]) !== targetAccountName) {
-                tweetDivs.splice(i, 1);
-            }
-        }
+}
+
+function specifyAccount(tweetDivs) {
+    // 個別ツイートなら ツイートソースラベル が表示されている（はず）
+    const startIndex = tweetDivs.findIndex(div => !!div.querySelector(
+        'a[href="https://help.twitter.com/using-twitter/how-to-tweet#source-labels"]'
+    ));
+    if (startIndex === -1) {
+        alert('個別ツイートが見つかりません。' +
+              '個別ツイートが読み込まれる所までスクロールしてください。' +
+              '意図が分かる方はブラウザの表示を縮小してもいいです。');
+        return [];
     }
-    return tweetDivs;
+    tweetDivs.splice(0, startIndex); // 個別ツイートより前のDIVを全削除
+    const targetAccountName = extractAccountName(tweetDivs[0]);
+    return tweetDivs.filter(div => extractAccountName(div) === targetAccountName);
 }
 
 function extractAccountName(div) {
@@ -445,10 +440,9 @@ function extractAccountName(div) {
     return a.getAttribute('href');
 }
 
-function extractImgURLs(tweetDivs, onlyFirst) {
+function extractImgURLs(tweetDivs) {
     const imgURLs = [];
     tweetDivs.forEach(div => {
-        if (onlyFirst && div.dataset.tisViewed) return;
         const art = div.querySelector(':scope > div > article');
         if (!art) return;
         const imgs = extractImgs(art);
