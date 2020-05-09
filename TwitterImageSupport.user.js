@@ -4,7 +4,7 @@
 // @description タイムライン（TL）の画像を左クリックすると専用のViewerで画像を開き、中クリックすると新規タブで画像だけを開きます。メインバーのViewボタンでTLの画像ツイートをまとめてViewerで開きます。詳細はスクリプト内部のコメントに記述してあります。
 // @namespace   https://github.com/horyu
 // @match       https://twitter.com/*
-// @version     0.3.5
+// @version     0.3.6
 // @run-at      document-start
 // @noframes
 // ==/UserScript==
@@ -413,7 +413,7 @@ function addViewButton() {
 
 function getTweetDivs() {
     return Array.from(document.querySelectorAll(
-        '[data-testid="primaryColumn"] [aria-label^="タイムライン:"] > div > div > div'
+        '[data-testid="primaryColumn"] [aria-label^="タイムライン:"] > div > div'
     ));
 }
 
@@ -448,7 +448,7 @@ function extractImgURLs(tweetDivs) {
         const imgs = extractImgs(art);
         if (imgs.length > 0) {
             // IMGを抽出できたDIVは seagreen で縁取る & data-tisViewedを登録
-            div.style.cssText = `border-style: solid; border-color: rgb(46, 139, 87, .5);`;
+            div.style.border = `solid 1px rgb(46, 139, 87, .5)`;
             div.dataset.tisViewed = true; // IMG生成を確実に確認できたここで登録
             imgs.forEach(img => {
                 imgURLs.push(extractImgURL(img));
