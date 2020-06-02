@@ -102,3 +102,11 @@ expandImg：Viewerで画像を開く時、標準で拡大表示に する（true
 backgroundAlpha：Viewerの黒背景の透明度 0.0（透明）～1.0（不透明）
 ```
 </details>
+
+---
+
+__Twitter Cube2__
+
+<a href="TwitterCube2.user.js?raw=true">Install Link</a>
+
+Twitterでルービックキューブの記録を毎日ツイートする自分用。2桁秒向けの設定なので、1桁秒の人はコードを書き換える必要がある。
