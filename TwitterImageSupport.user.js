@@ -4,7 +4,7 @@
 // @description タイムライン（TL）の画像を左クリックすると専用のViewerで画像を開き、中クリックすると新規タブで画像だけを開きます。メインバーのViewボタンでTLの画像ツイートをまとめてViewerで開きます。詳細はスクリプト内部のコメントに記述してあります。
 // @namespace   https://github.com/horyu
 // @match       https://twitter.com/*
-// @version     0.3.8
+// @version     0.3.9
 // @run-at      document-start
 // @noframes
 // ==/UserScript==
@@ -334,19 +334,14 @@ function addClickEventListener() {
             window.open(clickedImgURL);
         }
     }, true);
-    if (window.chrome) {
-        // スマホ版左スワイプによるカメラ画像ツイートは拾わない
-        // [原因] 該当DIV要素上の中クリックはオートスクロールになる → clickとauxclickが不発
-        // [理由] そもそも該当ツイートが少なくてmousedownとmouseupで書くほどの価値はない
-        document.addEventListener('auxclick', e => {
-            if (e.button !== 1) return;
-            const ele = e.target;
-            const clickedImgURL = extractClickedImgURL(ele);
-            if (!clickedImgURL) return;
-            e.preventDefault();
-            window.open(clickedImgURL);
-        }, true);
-    }
+    document.addEventListener('auxclick', e => {
+        if (e.button !== 1) return;
+        const ele = e.target;
+        const clickedImgURL = extractClickedImgURL(ele);
+        if (!clickedImgURL) return;
+        e.preventDefault();
+        window.open(clickedImgURL);
+    }, true);
 }
 
 // クリック対象が(対象IMG || 対象IMGを含む何か) ? extractImgURL(img) : undefined
