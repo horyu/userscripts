@@ -110,3 +110,15 @@ __Twitter Cube2__
 <a href="TwitterCube2.user.js?raw=true">Install Link</a>
 
 Twitterでルービックキューブの記録を毎日ツイートする自分用。2桁秒向けの設定なので、1桁秒の人はコードを書き換える必要がある。
+
+---
+
+__Twitter Timeline Tweet Notifier__
+
+<a href="TwitterTimelineTweetNotifier.user.js?raw=true">Install Link</a>
+
+TwitterでタイムラインのツイートDIVが初出現・再出現するたびに、`window.TimelineTweetNotifier.addObserver(key, function);` で設定された関数を実行します。
+関数の引数にはスクリプト中に定義されている `TimelineTweet` のインスタンスが渡されます。
+
+`window.TimelineTweetNotifier.removeObserver(key);` で設定解除することも可能です。
+
