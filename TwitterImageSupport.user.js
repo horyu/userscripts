@@ -4,7 +4,7 @@
 // @description タイムライン（TL）の画像を左クリックすると専用のViewerで画像を開き、中クリックすると新規タブで画像だけを開きます。メインバーのViewボタンでTLの画像ツイートをまとめてViewerで開きます。詳細はスクリプト内部のコメントに記述してあります。
 // @namespace   https://github.com/horyu
 // @match       https://twitter.com/*
-// @version     0.3.9
+// @version     0.3.10
 // @run-at      document-start
 // @noframes
 // ==/UserScript==
@@ -364,9 +364,6 @@ function extractImgs(ele, isQuote) {
     let imgs = Array.from(ele.querySelectorAll('img[src^="https://pbs.twimg.com/media"]'));
     // クリック対象が引用部分ではないなら、引用部分のIMGを削除
     if (!isQuote) imgs = imgs.filter(img => !img.closest('[role="blockquote"]'));
-    // 公式では 0 1                          |0|1|
-    //          2 3 の順に表示されるが構造が |2|3| なので並び替え
-    if (imgs.length === 4) [imgs[1], imgs[2]] = [imgs[2], imgs[1]];
     return imgs;
 }
 
