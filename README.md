@@ -2,6 +2,14 @@
 
 ---
 
+__Soundcloud Repeat__
+
+<a href="SoundCloudRepeat.user.js?raw=true">Install Link</a>
+
+SoundCloud で指定回数繰り返したら次の曲に移るようにします。
+
+---
+
 __PeingNetImageToText__
 
 <a href="PeingNetImageToText.user.js?raw=true">Install Link</a>
