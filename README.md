@@ -2,6 +2,14 @@
 
 ---
 
+__GitHub Remove is:open__
+
+<a href="GitHubRemoveIsOpen.user.js?raw=true">Install Link</a>
+
+GitHub の issues を開いたとき、フィルターのデフォルト設定に含まれている「is:open」を削除します。
+
+---
+
 __Soundcloud Repeat__
 
 <a href="SoundCloudRepeat.user.js?raw=true">Install Link</a>
