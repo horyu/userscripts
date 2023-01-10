@@ -134,12 +134,12 @@ class TimelineTweet {
 
     isTopic(ignoreCache = false) {
         // トピック
-        return null !== this.cacheQuerySelector(ignoreCache, 'path[d^="M18.265"]');
+        return null !== this.cacheQuerySelector(ignoreCache, 'path[d^="M12 1.75c-5.11"]');
     }
 
     isPromoted(ignoreCache = false) {
         // プロモーション
-        return null !== this.cacheQuerySelector(ignoreCache, 'path[d^="M20.75"]');
+        return null !== this.cacheQuerySelector(ignoreCache, 'path[d^="M19.498"]');
     }
 
     isReplyed(ignoreCache = false) {
