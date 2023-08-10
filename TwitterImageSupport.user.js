@@ -4,7 +4,7 @@
 // @description タイムライン（TL）の画像を左クリックすると専用のViewerで画像を開き、中クリックすると新規タブで画像だけを開きます。メインバーのViewボタンでTLの画像ツイートをまとめてViewerで開きます。詳細はスクリプト内部のコメントに記述してあります。
 // @namespace   https://github.com/horyu
 // @match       https://twitter.com/*
-// @version     0.3.10
+// @version     0.3.11
 // @run-at      document-start
 // @noframes
 // ==/UserScript==
@@ -51,15 +51,15 @@ const OPTIONS = {
 // オプション ここまで
 //
 
-function init() {
-    document.addEventListener('DOMContentLoaded', () => {
-        const root = makeRoot();
-        OreCanvas.initialize(root);
-        OreViewer.initialize(root);
-        addClickEventListener();
-        addViewButton();
-    });
+function main() {
+    const root = makeRoot();
+    OreCanvas.initialize(root);
+    OreViewer.initialize(root);
+    addClickEventListener();
+    addViewButton();
 }
+document.addEventListener('DOMContentLoaded', main);
+console.log("IMAGE SUPPORT");
 
 //
 // makeRoot
@@ -405,14 +405,14 @@ function addViewButton() {
 
 function getTweetDivs() {
     return Array.from(document.querySelectorAll(
-        '[data-testid="primaryColumn"] [aria-label^="タイムライン:"] > div > div > div'
+        '[data-testid="primaryColumn"] [aria-label^="タイムライン:"] > div > div > div > div'
     ));
 }
 
 function specifyAccount(tweetDivs) {
-    // 個別ツイートなら ツイートソースラベル が表示されている（はず）
+    // 個別ツイートならブックマークボタンが表示されている（はず）
     const startIndex = tweetDivs.findIndex(div => !!div.querySelector(
-        'a[href="https://help.twitter.com/using-twitter/how-to-tweet#source-labels"]'
+        '[data-testid="bookmark"]'
     ));
     if (startIndex === -1) {
         alert('個別ツイートが見つかりません。' +
@@ -449,5 +449,3 @@ function extractImgURLs(tweetDivs) {
     });
     return imgURLs;
 }
-
-init();
