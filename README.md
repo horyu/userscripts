@@ -138,3 +138,17 @@ TwitterでタイムラインのツイートDIVが初出現・再出現するた�
 
 `window.TimelineTweetNotifier.removeObserver(key);` で設定解除することも可能です。
 
+
+---
+
+__WebcomicsViewSupport__
+
+<a href="WebcomicsViewSupport?raw=true">Install Link</a>
+
+
+[Web漫画アンテナ](https://webcomics.jp/) で色々やってくれます。
+
+1. 一度表示したEntryをローカルストレージに保存し、同一名の漫画のEntryがあれば追加表示する
+2. NG登録したサイトのEntryを半透明にする
+3. ヘッダーに指定日時以前のEntryを非表示にするフィルターを追加する
+
