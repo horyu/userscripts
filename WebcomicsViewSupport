@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Web漫画アンテナ 表示支援
 // @namespace    https://github.com/horyu/
-// @version      2023.9.3
+// @version      2024.1.2
 // @description  ➀一度表示したEntryをローカルストレージに保存し、同一名の漫画のEntryがあれば追加表示する ②NG登録したサイトのEntryを半透明にする ③ヘッダーに指定日時以前のEntryを非表示にするフィルターを追加する
 // @author       horyu
 // @match        https://webcomics.jp
@@ -111,7 +111,8 @@ function parse(entry) {
       throw Error(`月日のパースに失敗した: ${dateText}`);
     }
     date = new Date(
-      new Date().getFullYear(),
+      // 12月はおそらく去年のコンテンツ
+      new Date().getFullYear() - (parseInt(ma[1]) === 12 ? 1 : 0),
       parseInt(ma[1]) - 1,
       parseInt(ma[2])
     );
