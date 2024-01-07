@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Web漫画アンテナ 表示支援
 // @namespace    https://github.com/horyu/
-// @version      2024.1.2
+// @version      2024.1.7
 // @description  ➀一度表示したEntryをローカルストレージに保存し、同一名の漫画のEntryがあれば追加表示する ②NG登録したサイトのEntryを半透明にする ③ヘッダーに指定日時以前のEntryを非表示にするフィルターを追加する
 // @author       horyu
 // @match        https://webcomics.jp
@@ -51,8 +51,8 @@ function main() {
   for (var info of infos) {
     saveInfo(info, savedInfosMap[info.title]);
   }
-  addYmdFilter(infos);
 
+  addYmdFilter(infos);
   registerMenuCommands();
 }
 
@@ -173,18 +173,19 @@ function insertSavedInfos(info, savedInfos) {
   var insertInfos = savedInfos.filter(
     (pastInfo) => pastInfo.site !== info.site
   );
+  if (insertInfos.length === 0) {
+    return;
+  }
+
   var html = "";
   for (var insertInfo of insertInfos) {
     html += `<div class="entry-date">${insertInfo.ymd} - <a href="${insertInfo.detailHref}">${insertInfo.site}</a></div>`;
   }
-  if (html.length) {
-    info.entry.style.removeProperty("height");
-    info.entry.style.minHeight = `${100 + 16 * insertInfo.length}px`;
+  info.entry.style.minHeight = `${100 + 16 * insertInfos.length}px`;
 
-    info.entry
-      .querySelector(".entry-title")
-      .insertAdjacentHTML("beforebegin", html);
-  }
+  info.entry
+    .querySelector(".entry-title")
+    .insertAdjacentHTML("beforebegin", html);
 }
 
 /**
