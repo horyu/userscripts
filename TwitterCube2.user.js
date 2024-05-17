@@ -1,9 +1,10 @@
 // ==UserScript==
 // @name         Twitter Cube2
 // @namespace    https://github.com/horyu
-// @version      2020.6.2
+// @version      2024.5.17
 // @description  Twitterでルービックキューブの記録を毎日ツイートする自分用。2桁秒向けの設定なので、1桁秒の人はコードを書き換える必要がある。
 // @author       horyu (https://github.com/horyu/)
+// @match        https://x.com/*
 // @match        https://twitter.com/*
 // @run-at       document-start
 // @grant        GM_addStyle
