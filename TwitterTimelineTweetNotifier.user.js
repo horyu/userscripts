@@ -1,9 +1,10 @@
 // ==UserScript==
 // @name         TwitterTimelineTweetNotifier
 // @namespace    https://github.com/horyu/
-// @version      0.7
+// @version      0.8
 // @author       horyu
 // @description  window.TimelineTweetNotifier.addObserver('info', console.log);
+// @match        https://x.com/*
 // @match        https://twitter.com/*
 // @run-at       document-start
 // @grant        none
