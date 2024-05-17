@@ -1,8 +1,16 @@
+# horyu/userscripts
+
 このリポジトリは、作ったユーザースクリプトを（追加できる内容であれば）適当に追加していくところです。
 
----
+## 利用方法
 
-__GitHub Remove is:open__
+1. ブラウザに Tampermonkey をインストールする ([Firefox](https://addons.mozilla.org/ja/firefox/addon/tampermonkey/), [Chrome](https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo?hl=ja)）
+2. 公開中のUser StyleSheet から `Install Link` をクリックする
+3. インストールボタンをクリックする
+
+## 公開中のUserScript
+
+### GitHub Remove is:open
 
 <a href="GitHubRemoveIsOpen.user.js?raw=true">Install Link</a>
 
@@ -10,7 +18,7 @@ GitHub の issues を開いたとき、フィルターのデフォルト設定�
 
 ---
 
-__Soundcloud Repeat__
+### Soundcloud Repeat
 
 <a href="SoundCloudRepeat.user.js?raw=true">Install Link</a>
 
@@ -18,7 +26,7 @@ SoundCloud で指定回数繰り返したら次の曲に移るようにします
 
 ---
 
-__PeingNetImageToText__
+### PeingNetImageToText
 
 <a href="PeingNetImageToText.user.js?raw=true">Install Link</a>
 
@@ -28,7 +36,7 @@ __PeingNetImageToText__
 
 ---
 
-__Highlight Dimensions__
+### Highlight Dimensions
 
 <a href="Highlight-Dimensions.user.js?raw=true">Install Link</a>
 
@@ -38,7 +46,7 @@ __Highlight Dimensions__
 
 ---
 
-__e-typing Shortcuts__
+### e-typing Shortcuts
 
 <a href="e-typing-Shortcuts.user.js?raw=true">Install Link</a>
 
@@ -49,7 +57,7 @@ __e-typing Shortcuts__
 
 ---
 
-__add textarea__
+### add textarea
 
 <a href="add-textarea.user.js?raw=true">Install Link</a>
 
@@ -57,7 +65,7 @@ __add textarea__
 
 ---
 
-__NicoManga ScrollButton__
+### NicoManga ScrollButton
 
 <a href="NicoManga-ScrollButton.user.js?raw=true">Install Link</a>
 
@@ -68,7 +76,7 @@ __NicoManga ScrollButton__
 
 ---
 
-__Always desktop NicoDic__
+### Always desktop NicoDic
 
 <a href="Always-Desktop-NicoDic.user.js?raw=true">Install Link</a>
 
@@ -76,7 +84,7 @@ __Always desktop NicoDic__
 
 ---
 
-__Twitter Image Support__
+### Twitter Image Support
 
 <a href="TwitterImageSupport.user.js?raw=true">Install Link</a>
 
@@ -121,7 +129,7 @@ backgroundAlpha：Viewerの黒背景の透明度 0.0（透明）～1.0（不透�
 
 ---
 
-__Twitter Cube2__
+### Twitter Cube2
 
 <a href="TwitterCube2.user.js?raw=true">Install Link</a>
 
@@ -129,7 +137,7 @@ Twitterでルービックキューブの記録を毎日ツイートする自分�
 
 ---
 
-__Twitter Timeline Tweet Notifier__
+### Twitter Timeline Tweet Notifier
 
 <a href="TwitterTimelineTweetNotifier.user.js?raw=true">Install Link</a>
 
@@ -141,7 +149,7 @@ TwitterでタイムラインのツイートDIVが初出現・再出現するた�
 
 ---
 
-__WebcomicsViewSupport__
+### WebcomicsViewSupport
 
 <a href="WebcomicsViewSupport?raw=true">Install Link</a>
 
