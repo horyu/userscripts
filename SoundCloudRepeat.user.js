@@ -1,13 +1,14 @@
 // ==UserScript==
 // @name         SoundCloud Repeat
 // @namespace    https://github.com/horyu/
-// @version      2022.5.26
+// @version      2024.8.4
 // @description  REPEAT_NUMBER 回繰り返す（＝REPEAT_NUMBER + 1 回再生する）
 // @author       horyu (https://github.com/horyu/)
 // @match        https://soundcloud.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=soundcloud.com
 // @run-at       document-idle
 // @grant        none
+// @noframes
 // ==/UserScript==
 const REPEAT_NUMBER = 2;
 
