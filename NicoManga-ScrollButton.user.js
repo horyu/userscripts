@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ニコニコ静画（漫画）用　ボタン追加
 // @namespace    https://github.com/horyu/
-// @version      0.5
+// @version      0.6
 // @description  ニコニコ漫画のヘッダーに、左右クリックでページスクロールするボタンと次エピソードへの移動ボタンを追加します。（左右キー入力でページスクロールする機能も入ってます）
 // @run-at       document-end
 // @match        *://manga.nicovideo.jp/watch/mg*
@@ -26,7 +26,7 @@
         document.addEventListener('keydown', (event) => {
             const offset = offsets[event.which];
             if (offset) {
-                if (document.activeElement.tagName !== "INPUT") {
+                if (document.activeElement.tagName === "INPUT") {
                     return;
                 }
                 if (!event.ctrlKey) {
