@@ -162,4 +162,5 @@ TwitterでタイムラインのツイートDIVが初出現・再出現するた�
 
 <a href="manga-one-full-screen-button.user.js?raw=true">Install Link</a>
 
-[マンガワン](https://manga-one.com/) のマンガワンの更新日時の横に全画面ボタンを追加します。
+[マンガワン](https://manga-one.com/) のの更新日時の横に全画面ボタンを追加します。
+
