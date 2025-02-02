@@ -151,12 +151,15 @@ TwitterでタイムラインのツイートDIVが初出現・再出現するた�
 
 ### WebcomicsViewSupport
 
-<a href="WebcomicsViewSupport?raw=true">Install Link</a>
-
+<a href="WebcomicsViewSupport.user.js?raw=true">Install Link</a>
 
 [Web漫画アンテナ](https://webcomics.jp/) で色々やってくれます。
 
-1. 一度表示したEntryをローカルストレージに保存し、同一名の漫画のEntryがあれば追加表示する
-2. NG登録したサイトのEntryを半透明にする
-3. ヘッダーに指定日時以前のEntryを非表示にするフィルターを追加する
 
+---
+
+### MangaOne FullScreen Button
+
+<a href="manga-one-full-screen-button.user.js?raw=true">Install Link</a>
+
+[マンガワン](https://manga-one.com/) のマンガワンの更新日時の横に全画面ボタンを追加します。
