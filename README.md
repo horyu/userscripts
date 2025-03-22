@@ -164,3 +164,11 @@ TwitterでタイムラインのツイートDIVが初出現・再出現するた�
 
 [マンガワン](https://manga-one.com/) のの更新日時の横に全画面ボタンを追加します。
 
+
+---
+
+### nicovideo-seek-to-start
+
+<a href="nicovideo-seek-to-start.user.js?raw=true">Install Link</a>
+
+ニコニコ動画の10秒戻るボタンを右クリックすると動画先頭に戻るようにします。
