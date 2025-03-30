@@ -169,6 +169,7 @@ TwitterでタイムラインのツイートDIVが初出現・再出現するた�
 
 ### nicovideo-seek-to-start
 
-<a href="nicovideo-seek-to-start.user.js?raw=true">Install Link</a>
+<a href="nicovideo-quick-seek.user.js?raw=true">Install Link</a>
 
-ニコニコ動画の10秒戻るボタンを右クリックすると動画先頭に戻るようにします。
+ニコニコ動画の10秒戻るボタンを右クリックすると動画先頭へ、10秒送るボタンを右クリックすると動画末尾にシークされます。
+
