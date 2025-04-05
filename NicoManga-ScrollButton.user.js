@@ -1,11 +1,12 @@
 // ==UserScript==
-// @name         ニコニコ静画（漫画）用　ボタン追加
+// @name         ニコニコ漫画 ボタン+ショートカットキー追加
 // @namespace    https://github.com/horyu/
-// @version      0.6
-// @description  ニコニコ漫画のヘッダーに、左右クリックでページスクロールするボタンと次エピソードへの移動ボタンを追加します。（左右キー入力でページスクロールする機能も入ってます）
+// @version      2025.4.5
+// @description  ニコニコ漫画のヘッダーに、左右クリックでページスクロールするボタンと次エピソードへの移動ボタンとショートカットキーを追加します。ショートカットキー　左キー:次ページ、右キー:前ページ、Ctrl+左キー:次エピソード、Ctrl+右キー:前エピソード、Ctrl+Delete:タブを閉じる
+// @author       horyu (https://github.com/horyu/)
 // @run-at       document-end
 // @match        *://manga.nicovideo.jp/watch/mg*
-// @grant        none
+// @grant        window.close
 // ==/UserScript==
 
 (function(){
@@ -21,14 +22,18 @@
     };
     // 左右キーで移動、Ctrlを押していたらエピソードを移動
     {
-        //                37 ←    39 →
-        const offsets = {'37': 1, '39': -1};
+        //                ←              →
+        const offsets = {'ArrowLeft': 1, 'ArrowRight': -1};
         document.addEventListener('keydown', (event) => {
-            const offset = offsets[event.which];
+            if (document.activeElement.tagName === "INPUT") {
+                return;
+            }
+            if (event.ctrlKey && event.key === 'Delete') {
+                window.close();
+                return;
+            }
+            const offset = offsets[event.key];
             if (offset) {
-                if (document.activeElement.tagName === "INPUT") {
-                    return;
-                }
                 if (!event.ctrlKey) {
                     scrollBy(offset);
                 } else {
@@ -80,5 +85,4 @@
             addButton(btn);
         }
     }, 10);
-
 })();
