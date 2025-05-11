@@ -182,3 +182,4 @@ TwitterでタイムラインのツイートDIVが初出現・再出現するた�
 
 [ニコニコ超検索](https://gokulin.info/search/)の検索結果から動画のプレイリストを作成し、ニコニコ動画で連続再生します。拡張機能のメニューからプレイリストを空にできます。
 
+![ScreenShot](https://raw.githubusercontent.com/horyu/userscripts/master/imgs/nico-playlist-player.png)
