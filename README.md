@@ -162,7 +162,7 @@ TwitterでタイムラインのツイートDIVが初出現・再出現するた�
 
 <a href="manga-one-full-screen-button.user.js?raw=true">Install Link</a>
 
-[マンガワン](https://manga-one.com/) のの更新日時の横に全画面ボタンを追加します。
+[マンガワン](https://manga-one.com/) の更新日時の横に全画面ボタンを追加します。
 
 
 ---
@@ -172,4 +172,13 @@ TwitterでタイムラインのツイートDIVが初出現・再出現するた�
 <a href="nicovideo-quick-seek.user.js?raw=true">Install Link</a>
 
 ニコニコ動画の10秒戻るボタンを右クリックすると動画先頭へ、10秒送るボタンを右クリックすると動画末尾にシークされます。
+
+
+---
+
+### nico-playlist-player
+
+<a href="nico-playlist-player.user.js?raw=true">Install Link</a>
+
+[ニコニコ超検索](https://gokulin.info/search/)の検索結果から動画のプレイリストを作成し、ニコニコ動画で連続再生します。拡張機能のメニューからプレイリストを空にできます。
 
