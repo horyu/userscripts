@@ -176,10 +176,16 @@ TwitterでタイムラインのツイートDIVが初出現・再出現するた�
 
 ---
 
-### nico-playlist-player
+### Nico Playlist Player
 
 <a href="nico-playlist-player.user.js?raw=true">Install Link</a>
 
 [ニコニコ超検索](https://gokulin.info/search/)の検索結果から動画のプレイリストを作成し、ニコニコ動画で連続再生します。拡張機能のメニューからプレイリストを空にできます。
 
 ![ScreenShot](https://raw.githubusercontent.com/horyu/userscripts/master/imgs/nico-playlist-player.png)
+
+### Nico Super Search Month Increment Helper
+
+<a href="nico-search-range-increment.user.js?raw=true">Install Link</a>
+
+[ニコニコ超検索](https://gokulin.info/search/)の検索条件フォームに「Next Month Range」ボタンを追加します。ボタンをクリックすると現在の投稿日Toを基準に、投稿日From（基準月1日）・投稿日To（翌月1日）・再生数Min（経過月数x840）を設定します。
