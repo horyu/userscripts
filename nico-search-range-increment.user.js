@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Nico Super Search Month Increment Helper
 // @namespace    https://github.com/horyu/
-// @version      2025.5.13
-// @description  ニコニコ超検索( https://gokulin.info/search/ )の検索条件フォームに「Next Month Range」ボタンを追加します。ボタンをクリックすると現在の投稿日Toを基準に、投稿日From（基準月1日）・投稿日To（翌月1日）・再生数Min（経過月数x840）を設定します。
+// @version      2025.5.14
+// @description  ニコニコ超検索( https://gokulin.info/search/ )の検索条件フォームに「Next Month Range」ボタンを追加します。ボタンをクリックすると現在の投稿日Toを基準に、投稿日From（翌月1日）・投稿日To（翌月最終日）・再生数Min（経過月数x840）を設定します。
 // @author       horyu (https://github.com/horyu/)
 // @match        https://gokulin.info/search/result.php*
 // @grant        none
@@ -31,10 +31,10 @@
       return;
     }
 
-    // Use toInput date as base, set From to the 1st of the base month, To to the 1st of next month
+    // Use toInput date as base, set From to the 1st of next month, To to the last day of next month
     const base = new Date(toInput.value);
-    const fromDate = new Date(base.getFullYear(), base.getMonth(), 1); // 1st of the base month
-    const toDate = new Date(base.getFullYear(), base.getMonth() + 1, 1); // 1st of next month
+    const fromDate = new Date(base.getFullYear(), base.getMonth() + 1, 1); // 1st of next month
+    const toDate = new Date(base.getFullYear(), base.getMonth() + 2, 0);  // last day of next month
 
     // Set in yyyy-mm-dd format
     const pad = (n) => n.toString().padStart(2, "0");
