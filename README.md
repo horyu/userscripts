@@ -188,4 +188,4 @@ TwitterでタイムラインのツイートDIVが初出現・再出現するた�
 
 <a href="nico-search-range-increment.user.js?raw=true">Install Link</a>
 
-[ニコニコ超検索](https://gokulin.info/search/)の検索条件フォームに「Next Month Range」ボタンを追加します。ボタンをクリックすると現在の投稿日Toを基準に、投稿日From（基準月1日）・投稿日To（翌月1日）・再生数Min（経過月数x840）を設定します。
+[ニコニコ超検索](https://gokulin.info/search/)の検索条件フォームに「Next Month Range」ボタンを追加します。ボタンをクリックすると現在の投稿日Toを基準に、投稿日From（翌月1日）・投稿日To（翌月最終日）・再生数Min（経過月数x840）を設定します。
