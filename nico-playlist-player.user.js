@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Nico Playlist Player
 // @namespace    https://github.com/horyu/
-// @version      2025.5.11
+// @version      2025.5.19
 // @description  ニコニコ超検索( https://gokulin.info/search/ )の検索結果から動画のプレイリストを作成し、ニコニコ動画で連続再生する。拡張機能のメニューからプレイリストを空にできる。
 // @author       horyu (https://github.com/horyu/)
 // @match        https://gokulin.info/search/result.php*
@@ -40,9 +40,9 @@
   const savePlaylist = (playlist) => GM_setValue(PLAYLIST_KEY, playlist);
 
   // Register a menu command to clear the playlist (available on all matched pages)
-  GM_registerMenuCommand('Clear Playlist', () => {
+  GM_registerMenuCommand("Clear Playlist", () => {
     savePlaylist([]);
-    alert('Playlist cleared.');
+    alert("Playlist cleared.");
   });
 
   // Function to create and play playlist from search result page
@@ -114,19 +114,36 @@
       return;
     }
 
-    // Wait for the video to finish playing
-    while (true) {
-      // totalTimeElement may fluctuate by 1 second, so keep watching it while the video is playing.
-      // e.g. https://www.nicovideo.jp/watch/sm1091180 (02:00 → 01:59)
-      if (currentTimeElement.textContent === totalTimeElement.textContent) {
-        break;
+    // Wait for the video to finish playing or get stuck
+    {
+      const STUCK_DETECTION_THRESHOLD = 3;
+      const LOOP_SLEEP_MS = 900;
+
+      let stuckDetectionCount = 0;
+      while (true) {
+        // If the current time matches the total time, the video has ended normally.
+        // (totalTimeElement may fluctuate by 1s—compare textContent directly every loop; do not cache)
+        // e.g. https://www.nicovideo.jp/watch/sm1091180 (02:00 → 01:59)
+        if (currentTimeElement.textContent === totalTimeElement.textContent) {
+          break;
+        }
+        // If the "next video" popup appears, treat as video end.
+        // e.g. https://www.nicovideo.jp/watch/sm1464024 (03:10)
+        if (document.querySelector('[data-element-name="next_video_confirmation_play_now"]')) {
+          break;
+        }
+        // If a loading animation is present for STUCK_DETECTION_THRESHOLD consecutive loops, consider the video stuck and break.
+        // e.g. https://www.nicovideo.jp/watch/sm3124580 (04:41)
+        if (document.querySelector(".grid-area_\\[player\\] .anim_rotate")) {
+          if (++stuckDetectionCount >= STUCK_DETECTION_THRESHOLD) {
+            break;
+          }
+        } else {
+          stuckDetectionCount = 0;
+        }
+
+        await sleep(LOOP_SLEEP_MS);
       }
-      // For some videos, the "next video" popup appears before the video actually ends.
-      // e.g. https://www.nicovideo.jp/watch/sm1464024 (03:10)
-      if (document.querySelector('[data-element-name="next_video_confirmation_play_now"]')) {
-        break;
-      }
-      await sleep(900);
     }
 
     // Open the next video in the playlist
